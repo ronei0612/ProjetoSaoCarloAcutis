@@ -69,18 +69,3 @@ background-image: url("./binding-dark.png");
     font-size: 3.5rem;
   }
 }
-
-.modal-body img {
-  max-width: 100%;
-  height: auto; 
-  display: block;
-  margin: 0 auto;
-}
-
-.chave-pix {
-  font-weight: bold;
-}
-
-#copyKey {
-  cursor: pointer;
-}
