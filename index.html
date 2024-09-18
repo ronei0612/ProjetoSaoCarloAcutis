@@ -6,6 +6,7 @@
     <meta name="description" content="">
     <title>Projeto São Carlo Acutis</title>    
 
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
     <link href="./assets/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
@@ -21,6 +22,14 @@
         .bd-placeholder-img-lg {
           font-size: 3.5rem;
         }
+      }
+
+      /* Estilos para o QR Code no modal */
+      .modal-body img {
+        max-width: 100%; /* A imagem ocupará no máximo a largura do modal */
+        height: auto;    /* A altura será ajustada automaticamente para manter a proporção */
+        display: block;  /* Centraliza a imagem horizontalmente */
+        margin: 0 auto;  /* Centraliza a imagem verticalmente */
       }
     </style>
 
@@ -49,7 +58,37 @@
         O Projeto São Carlo Acutis é uma iniciativa educacional que busca inspirar jovens a entrarem no mundo da programação, apoiando-os para o mercado de trabalho digital, seguindo os bons exemplos de Carlo Acutis, padroeiro da internet.
       </p>
       <p class="lead">
-        <a href="#" class="btn btn-lg btn-secondary fw-bold border-white bg-white">Seja um apoiador</a>
+        <!-- <a href="#" class="btn btn-lg btn-secondary fw-bold border-white bg-white">Seja um apoiador</a> -->
+        <button type="button" class="btn btn-secondary fw-bold border-white bg-white" data-toggle="modal" data-target="#doacaoModal">
+          Seja um apoiador
+        </button>
+
+<!-- Modal -->
+<div class="modal fade" id="doacaoModal" tabindex="-1" role="dialog" aria-labelledby="doacaoModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="doacaoModalLabel">Doação via Pix</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">        
+        <img src="QRCode_Pix.png" alt="QR Code para doação">
+        <p style="color: black;">
+          Chave: <b>19987006385</b>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-copy" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z"/>
+          </svg>
+          </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-lg" data-dismiss="modal">Fechar</button>
+        <button type="button" class="btn btn-primary">Copiar QrCode</button>
+      </div>
+    </div>
+  </div>
+</div>
       </p>
       
     </div>
