@@ -15,6 +15,7 @@
 /*
  * Base structure
  */
+ 
 
 body {
   background-color: #162139;
@@ -52,4 +53,34 @@ background-image: url("./binding-dark.png");
 .nav-masthead .active {
   color: #fff;
   border-bottom-color: #fff;
+}
+
+
+.bd-placeholder-img {
+  font-size: 1.125rem;
+  text-anchor: middle;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+@media (min-width: 768px) {
+  .bd-placeholder-img-lg {
+    font-size: 3.5rem;
+  }
+}
+
+.modal-body img {
+  max-width: 100%;
+  height: auto; 
+  display: block;
+  margin: 0 auto;
+}
+
+.chave-pix {
+  font-weight: bold;
+}
+
+#copyKey {
+  cursor: pointer;
 }
