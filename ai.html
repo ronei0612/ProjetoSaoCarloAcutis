@@ -25,7 +25,7 @@
           <textarea class="form-control" id="pergunta" rows="4"></textarea>
         </div>
 
-        <button id="enviar" class="btn btn-primary btn-block">Enviar</button>
+        <button id="enviar" class="btn btn-primary btn-block mt-2">Enviar</button> 
 
         <div id="resposta" class="mt-3 alert alert-info" role="alert"></div> 
       </div>
@@ -48,8 +48,8 @@
 
     perguntaInput.addEventListener('keydown', (event) => {
       if (event.ctrlKey && event.key === 'Enter') {
-        event.preventDefault(); // Impede o comportamento padrão do Enter
-        enviarButton.click(); // Simula o clique no botão enviar
+        event.preventDefault(); 
+        enviarButton.click(); 
       }
     });
 
@@ -62,7 +62,9 @@
         return;
       }
       
-      localStorage.setItem('apiToken', apiToken);
+      // Desabilita o botão e mostra o load
+      enviarButton.disabled = true;
+      enviarButton.textContent = "Carregando..."; 
 
       try {
         const response = await fetch(
@@ -97,6 +99,10 @@
       } catch (error) {
         console.error(error);
         respostaDiv.innerHTML = '<p>Ocorreu um erro ao processar a sua requisição.</p>';
+      } finally {
+        // Habilita o botão e volta o texto para "Enviar"
+        enviarButton.disabled = false; 
+        enviarButton.textContent = "Enviar";
       }
     });
   </script>
