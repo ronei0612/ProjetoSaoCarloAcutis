@@ -88,6 +88,12 @@
 
         const data = await response.json();
         respostaDiv.innerHTML = `<p>${data.candidates[0].content.parts[0].text}</p>`; 
+
+        // console.log("Limites de uso:");
+        // console.log("Total de tokens:", data.usageMetadata.totalTokenCount);
+        // console.log("Tokens do prompt:", data.usageMetadata.promptTokenCount);
+        // console.log("Tokens das respostas:", data.usageMetadata.candidatesTokenCount);
+
       } catch (error) {
         console.error(error);
         respostaDiv.innerHTML = '<p>Ocorreu um erro ao processar a sua requisição.</p>';
