@@ -46,6 +46,13 @@
       }
     });
 
+    perguntaInput.addEventListener('keydown', (event) => {
+      if (event.ctrlKey && event.key === 'Enter') {
+        event.preventDefault(); // Impede o comportamento padrão do Enter
+        enviarButton.click(); // Simula o clique no botão enviar
+      }
+    });
+
     enviarButton.addEventListener('click', async () => {
       const pergunta = perguntaInput.value;
       const apiToken = apiTokenInput.value;
