@@ -5,13 +5,13 @@ const respostaDiv = document.getElementById('resposta');
 const microfoneButton = document.getElementById('microfone');
 const modoEscuroButton = document.getElementById('modoEscuro');
 const limparButton = document.getElementById('limpar');
+const complementoInput = document.getElementById('complemento');
 
 let recognition = null;
 let isListening = false;
 //let finalTranscript = '';//Usando para limpar a caixa de texto
 let listeningTimer = null;
 
-// Função para configurar o reconhecimento de voz
 function setupSpeechRecognition() {
   if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
     recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
@@ -66,6 +66,11 @@ window.addEventListener('load', () => {
     apiTokenInput.value = savedToken;
   }
 
+  let complemento = localStorage.getItem('complemento');
+  if (complemento) {
+    complementoInput.value = complemento;
+  }
+
   let modoEscuroLocalStorage = localStorage.getItem('modoEscuro');
   if (modoEscuroLocalStorage === 'true') {
     ativarModoEscuro();
@@ -75,7 +80,6 @@ window.addEventListener('load', () => {
   setupSpeechRecognition(); // Inicializa o reconhecimento de voz
 });
 
-// Função para ativar o modo escuro
 function ativarModoEscuro() {
   document.body.classList.add('dark-mode');
   modoEscuroButton.innerHTML = `<i class="bi bi-moon"></i>`;
@@ -84,7 +88,7 @@ function ativarModoEscuro() {
 async function enviarPergunta() {
   respostaDiv.innerHTML = '';
 
-  const pergunta = perguntaInput.value.trim();
+  let pergunta = perguntaInput.value.trim();
   const apiToken = apiTokenInput.value;
 
   if (!apiToken) {
@@ -97,7 +101,9 @@ async function enviarPergunta() {
     return;
   }
 
+  pergunta = complementoInput.value + ' ' + pergunta;
   localStorage.setItem('apiToken', apiToken);
+  localStorage.setItem('complemento', complementoInput.value);
   enviarButton.disabled = true;
   enviarButton.textContent = "Carregando...";
 
