@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gravador de Voz</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        textarea {
+            width: 300px;
+            height: 150px;
+            resize: none;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <textarea id="transcricao" readonly></textarea>
+        <button id="btnOuvir">Ouvir</button>
+    </div>
+
+    <script>
+        const btnOuvir = document.getElementById('btnOuvir');
+        const transcricao = document.getElementById('transcricao');
+        let recognition = null;
+        let isListening = false;
+        let finalTranscript = '';
+        let listeningTimer; // Timer para reiniciar a escuta
+
+        // Verifica se o navegador suporta a API Web Speech
+        if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+            // Inicializa o objeto de reconhecimento de fala
+            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'pt-BR';
+            recognition.continuous = true; // Continua a gravar até parar
+            recognition.interimResults = true; // Retorna resultados parciais
+
+            // Função para lidar com eventos de reconhecimento de fala
+            recognition.onresult = (event) => {
+                finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript; // Adiciona o texto final à variável
+                    }
+                }
+                transcricao.value = finalTranscript;
+
+                ///////////////
+                clearTimeout(listeningTimer); // Limpa o timer anterior
+                listeningTimer = setTimeout(() => {
+                    recognition.stop(); // Interrompe a escuta
+                    setTimeout(() => {
+                        recognition.start(); // Reinicia a escuta
+                    }, 500); // Aguarda 500ms
+                }, 10000); // Aguarda 10 segundos de inatividade
+            };
+
+            // Função para iniciar/parar o reconhecimento de fala
+            btnOuvir.addEventListener('click', () => {
+                if (!isListening) {
+                    // Inicia o reconhecimento de fala
+                    recognition.start();
+                    btnOuvir.textContent = 'Parar';
+                    isListening = true;
+                } else {
+                    // Para o reconhecimento de fala
+                    recognition.stop();
+                    btnOuvir.textContent = 'Ouvir';
+                    isListening = false;
+                }
+            });
+        } else {
+            // Se o navegador não suportar a API, exibe uma mensagem
+            alert('Seu navegador não suporta reconhecimento de fala.');
+        }
+    </script>
+</body>
+</html>
