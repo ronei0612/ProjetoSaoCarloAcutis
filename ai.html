@@ -80,30 +80,19 @@
     const respostaDiv = document.getElementById('resposta');
     const microfoneButton = document.getElementById('microfone');
     const modoEscuroButton = document.getElementById('modoEscuro');
-
-    // Verifica se o modo escuro está armazenado no localStorage
-    const modoEscuroLocalStorage = localStorage.getItem('modoEscuro');
-    if (modoEscuroLocalStorage === 'true') {
-      document.body.classList.add('dark-mode');
-      modoEscuroButton.innerHTML = `<i class="bi bi-moon"></i>`;
-    } else {
-      modoEscuroButton.innerHTML = `<i class="bi bi-brightness-high"></i>`;
-    }
-
+    const limparButton = document.getElementById('limpar');
     let recognition = null;
     let isListening = false;
     //let finalTranscript = '';
-    let listeningTimer; // Timer para reiniciar a escuta
-    
+    let listeningTimer; // Timer para reiniciar a escuta    
 
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
         // Inicializa o objeto de reconhecimento de fala
         recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognition.lang = 'pt-BR';
-        recognition.continuous = true; // Continua a gravar até parar
-        recognition.interimResults = true; // Retorna resultados parciais
+        recognition.continuous = true;
+        recognition.interimResults = true;
 
-        // Função para lidar com eventos de reconhecimento de fala
         recognition.onresult = (event) => {
             let finalTranscript = ''; // Limpa o campo de texto
             for (let i = event.resultIndex; i < event.results.length; ++i) {
@@ -114,41 +103,46 @@
             perguntaInput.value = perguntaInput.value + finalTranscript;
             //enviarButton.click(); // Chama a função de envio automaticamente
 
-            clearTimeout(listeningTimer); // Limpa o timer anterior
+            clearTimeout(listeningTimer);
             listeningTimer = setTimeout(() => {
-                recognition.stop(); // Interrompe a escuta
+                recognition.stop();
                 setTimeout(() => {
                     if (microfoneButton.innerHTML.includes('bi-mic-mute'))
-                        recognition.start(); // Reinicia a escuta
-                }, 500); // Aguarda 500ms
+                        recognition.start();
+                }, 500);
             }, 5000); // Aguarda 5 segundos de inatividade
         };
 
-        // Função para iniciar/parar o reconhecimento de fala
         microfoneButton.addEventListener('click', () => {
             if (!isListening) {
-                // Inicia o reconhecimento de fala
                 recognition.start();
                 microfoneButton.innerHTML = '<i class="bi bi-mic-mute"></i>';
                 isListening = true;
             } else {
-                // Para o reconhecimento de fala
                 recognition.stop();
                 microfoneButton.innerHTML = '<i class="bi bi-mic"></i>';
                 isListening = false;
             }
         });
     } else {
-        // Se o navegador não suportar a API, exibe uma mensagem
         alert('Seu navegador não suporta reconhecimento de fala.');
     }
 
     // Carrega o token do localStorage (se existir)
     window.addEventListener('load', () => {
-      const savedToken = localStorage.getItem('apiToken');
+      let savedToken = localStorage.getItem('apiToken');
       if (savedToken) {
         apiTokenInput.value = savedToken;
       }
+      
+      let modoEscuroLocalStorage = localStorage.getItem('modoEscuro');
+      if (modoEscuroLocalStorage === 'true') {
+        document.body.classList.add('dark-mode');
+        modoEscuroButton.innerHTML = `<i class="bi bi-moon"></i>`;
+      } else {
+        modoEscuroButton.innerHTML = `<i class="bi bi-brightness-high"></i>`;
+      }
+
       perguntaInput.focus();
     });
 
@@ -238,7 +232,6 @@
       }
     });
 
-    const limparButton = document.getElementById('limpar');
     limparButton.addEventListener('click', () => {
       perguntaInput.value = '';
       perguntaInput.focus();
