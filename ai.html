@@ -101,7 +101,7 @@
 
     let recognition = null;
     let isListening = false;
-    let finalTranscript = '';
+    //let finalTranscript = '';
     let listeningTimer; // Timer para reiniciar a escuta
     
 
@@ -114,13 +114,13 @@
 
         // Função para lidar com eventos de reconhecimento de fala
         recognition.onresult = (event) => {
-            //finalTranscript = ''; // Limpa o campo de texto
+            let finalTranscript = ''; // Limpa o campo de texto
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 if (event.results[i].isFinal) {
                     finalTranscript += event.results[i][0].transcript;
                 }
             }
-            perguntaInput.value = finalTranscript;
+            perguntaInput.value = perguntaInput.value + finalTranscript;
             //enviarButton.click(); // Chama a função de envio automaticamente
 
             clearTimeout(listeningTimer); // Limpa o timer anterior
