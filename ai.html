@@ -159,7 +159,10 @@
         );
 
         const data = await response.json();
-        respostaDiv.innerHTML = `<p>${data.candidates[0].content.parts[0].text}</p>`; 
+        respostaDiv.innerHTML = `
+          <p><strong>Sua pergunta:</strong> ${pergunta}</p>
+          <p><strong>Resposta:</strong> ${data.candidates[0].content.parts[0].text}</p>
+        `; 
 
         // console.log("Limites de uso:");
         // console.log("Total de tokens:", data.usageMetadata.totalTokenCount);
