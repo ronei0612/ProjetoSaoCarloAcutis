@@ -148,10 +148,12 @@ async function enviarPergunta() {
 }
 
 function exibirResposta(pergunta, resposta) {
-  respostaDiv.innerHTML = `
-<p><strong>Sua pergunta:</strong> ${pergunta}</p>
-<p><strong>Resposta:</strong> ${resposta}</p>
-`;
+//   respostaDiv.innerHTML = `
+// <p><strong>Sua pergunta:</strong> ${pergunta}</p>
+// <p><strong>Resposta:</strong> ${resposta}</p>
+// `;
+
+  respostaDiv.innerHTML = `<p><strong>Resposta:</strong> ${resposta}</p>`;
 }
 
 function mostrarErro(mensagem) {
