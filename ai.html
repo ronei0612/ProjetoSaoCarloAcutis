@@ -29,7 +29,7 @@
   </style>
 </head>
 <body>
-  <div class="container mt-2">
+  <header class="container mt-2">
     <div class="row">
       <div class="col-md-12">
         <button id="modoEscuro" class="btn btn-secondary mt-3">
@@ -39,7 +39,9 @@
     </div>
 
     <h1 class="text-center mb-4">Pergunte ao AI Studio</h1>
+  </header>
 
+  <main class="container">
     <div class="row justify-content-center">
       <div class="col-md-6">
         <div class="form-group">
@@ -49,7 +51,6 @@
 
         <div class="form-group">
           <label for="pergunta">Sua pergunta:</label>
-          
           <div class="input-group">
             <button id="microfone" class="btn btn-secondary btn-sm">
               <i class="bi bi-mic"></i>
@@ -67,7 +68,7 @@
         <div id="resposta" class="mt-3 alert alert-info" role="alert"></div> 
       </div>
     </div>
-  </div>
+  </main>
   
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
