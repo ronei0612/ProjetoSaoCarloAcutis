@@ -8,14 +8,14 @@
   <meta name="author" content="Ronei C. Soares">
 
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Projeto Carlo Acutis" />
+  <meta property="og:title" content="Projeto Carlo Acutis - Links" />
   <meta property="og:description" content="" />
   <meta property="og:image" content="https://lh3.googleusercontent.com/pw/AP1GczOFRd224VLcBKollpX1LZ3bwVD6D9-QQ5wfcnpDUHFKdjx9AbMnqOYyJlaUUnkSiBnUOxa1xfdSc4qg83YO0NnWxwnRlq_0zZkHv4qY-l4Qmc4ESzhDaqwCTbP_qyEr-In3kNKyT1gsYBAWbNJcB9KX4g=w700-h874-s-no-gm?authuser=0" />
   <meta property="og:locale" content="pt_BR" />
 
-  <title>Projeto São Carlo Acutis</title>
+  <title>Projeto São Carlo Acutis - Links</title>
 
-  <link rel="icon" type="image/x-icon" href="">
+  <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
   <link href="./assets/dist/css/bootstrap.min.css" rel="stylesheet">
 
   <link href="./assets/dist/css/cover.css" rel="stylesheet">
@@ -29,9 +29,8 @@
         <img src="./assets/dist/images/carlo.png" alt="São Carlo Acutis" style="height: 400px;">
         <h3 class="float-md-start mb-0">Projeto São Carlo Acutis</h3>
         <nav class="nav nav-masthead justify-content-center float-md-end">
-          <a class="nav-link active" aria-current="page" onclick="showApresentacao()" style="cursor: pointer;">Apresentação</a>
-          <a class="nav-link" onclick="showLinks()" style="cursor: pointer;">Links</a>
-          <!-- <a class="nav-link" href="./links.html" target="_blank">Links</a> -->
+          <a class="nav-link" href="./index.html">Apresentação</a>
+          <a class="nav-link active" aria-current="page" href="#">Links</a>
           <!-- <a class="nav-link" href="#">Depoimentos</a> -->
           <a class="nav-link" href="https://nubank.com.br/cobrar/1c787t/66eb0ec8-f642-4ce4-ad3e-a1d5dd55e8e4" target="_blank">Doação</a>
         </nav>
@@ -40,33 +39,17 @@
 
     <main class="px-3">
       <div class="container cover-container">
-        <div id="links" style="display: none;">
-          <h1>Links</h1>
-          <p class="lead">
-          </p>
-          <div class="row">
-            <div class="col-md-6">
-              <a href="visualizador-codigo.html" target="_blank" class="btn btn-lg btn-secondary fw-bold border-white bg-white">Visualizador de Código</a>
-            </div>
-            <div class="col-md-6">
-              <a href="ai-studio.html" target="_blank" class="btn btn-lg btn-secondary fw-bold border-white bg-white">Pergunte ao AI Studio</a>
-            </div>
+        <h1>Links</h1>
+        <p class="lead">
+        </p>
+        <div class="row">
+          <div class="col-md-6">
+            <a href="visualizador-codigo.html" target="_blank" class="btn btn-lg btn-secondary fw-bold border-white bg-white">Visualizador de Código</a>
+          </div>
+          <div class="col-md-6">
+            <a href="ai-studio.html" target="_blank" class="btn btn-lg btn-secondary fw-bold border-white bg-white">Pergunte ao AI Studio</a>
           </div>
         </div>
-
-        <div id="apresentacao">
-          <h1>Apresentação</h1>
-          <p class="lead">
-            O Projeto São Carlo Acutis é uma iniciativa educacional que busca inspirar jovens a entrarem no mundo da
-            programação, apoiando-os para o mercado de trabalho digital, seguindo os bons exemplos de Carlo Acutis,
-            padroeiro da internet.
-          </p>
-          <p class="lead">
-            <a href="https://nubank.com.br/cobrar/1c787t/66eb0ec8-f642-4ce4-ad3e-a1d5dd55e8e4" target="_blank"
-              class="btn btn-lg btn-secondary fw-bold border-white bg-white">Seja um apoiador</a>
-          </p>
-        </div>
-
       </div>
     </main>
 
@@ -87,16 +70,6 @@
       'floating-chat.donateButton.background-color': '#00b9fe',
       'floating-chat.donateButton.text-color': '#fff'
     });
-
-    function showApresentacao() {
-      document.getElementById('apresentacao').style.display = 'block';
-      document.getElementById('links').style.display = 'none';
-    }
-
-    function showLinks() {
-      document.getElementById('links').style.display = 'block';
-      document.getElementById('apresentacao').style.display = 'none';
-    }
   </script>
 
 </body>
