@@ -178,6 +178,12 @@ perguntaInput.addEventListener('keydown', (event) => {
   if (event.ctrlKey && event.key === 'Enter') {
     event.preventDefault();
     enviarPergunta();
+  } else if (event.ctrlKey && event.key === 'm') {
+    event.preventDefault();
+    microfoneButton.click();
+  } else if (event.ctrlKey && event.key === 'd') {
+    event.preventDefault();
+    limparButton.click();
   }
 });
 
