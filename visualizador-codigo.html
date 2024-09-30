@@ -38,7 +38,7 @@
                             .then(data => {
                                 img.src = data;
                             })
-                            .catch(error => alert('Erro ao buscar a nova URL:', error));
+                            .catch(error => alert('Erro ao buscar a nova URL:' + error));
                     })(imgs[i]);
                 }
             }
