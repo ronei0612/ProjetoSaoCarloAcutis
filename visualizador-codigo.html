@@ -12,13 +12,6 @@
         <div class="mb-3" style="display: none;">
             <textarea class="form-control" id="texto" rows="10" placeholder="Cole seu código HTML aqui"></textarea>
         </div>
-        <!-- <button class="btn btn-primary" onclick="colarDoClipboard()">Colar
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
-                <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1z"/>
-                <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0z"/>
-              </svg>
-        </button>
-        <button class="btn btn-primary" onclick="visualizar()">Visualizar</button> -->
 
         <button class="btn btn-primary" onclick="colarDoClipboard()">Colar e Visualizar
             <i class="bi bi-clipboard"></i>
@@ -33,6 +26,21 @@
         function visualizar() {
             var texto = document.getElementById("texto").value;
             document.getElementById('resultado').innerHTML = texto; 
+
+            // Verificar e substituir URLs das imagens
+            var imgs = document.getElementById('resultado').getElementsByTagName('img');
+            for (var i = 0; i < imgs.length; i++) {
+                if (imgs[i].src.startsWith("https://photos")) {
+                    (function(img) {
+                        fetch('https://apinode-h4wt.onrender.com/fetch-url?url=' + encodeURIComponent(img.src))
+                            .then(response => response.text())
+                            .then(data => {
+                                img.src = data;
+                            })
+                            .catch(error => console.error('Erro ao buscar a nova URL:', error));
+                    })(imgs[i]);
+                }
+            }
 
             // Rola para baixo até o elemento 'resultado'
             document.getElementById('resultado').scrollIntoView({ behavior: 'smooth' });
