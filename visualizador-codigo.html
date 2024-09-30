@@ -31,9 +31,9 @@
             var imgs = document.getElementById('resultado').getElementsByTagName('img');
             for (var i = 0; i < imgs.length; i++) {
                 if (imgs[i].src.startsWith("https://photos")) {
-                    alert(imgs[i].src);
+                    //alert(encodeURIComponent(imgs[i].src));
                     (function(img) {
-                        fetch('https://apinode-h4wt.onrender.com/fetch-url?url=' + encodeURIComponent(img.src))
+                        fetch('https://apinode-h4wt.onrender.com/fetch-url?url=' + img.src)
                             .then(response => response.text())
                             .then(data => {
                                 img.src = data;
