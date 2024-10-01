@@ -82,7 +82,7 @@
                     await navigator.clipboard.writeText(data);
                     alert("Link da imagem gerada e copiada!");
                 } else {
-                    alert("O texto no clipboard não começa com 'https://photos.'");
+                    alert("O texto não é uma imagem compartilhada'");
                 }
             } catch (error) {
                 console.error("Erro ao gerar o link da imagem:", error);
