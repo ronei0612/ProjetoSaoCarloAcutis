@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autoscroll</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .output {
+            height: 50px; /* Ajuste para mostrar apenas duas linhas */
+            overflow: auto;
+            width: 80%;
+            margin: auto;
+            resize: both; /* Permite redimensionamento horizontal e vertical */
+        }
+        .dark-mode {
+            background-color: #121212;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body class="container">
+
+    <div id="output" class="output mt-3 border p-3"></div>
+
+    <div class="controls text-center mt-3 mb-3">
+		<textarea id="userText" class="form-control mb-3" placeholder="Digite seu texto aqui..."></textarea>
+        <br><br>
+        <label for="speed">Velocidade do Autoscroll: <span id="speedValue">10</span></label>
+        <input type="range" class="form-control-range w-50 mx-auto mb-3" id="speed" name="speed" min="1" max="100" value="10" oninput="adjustSpeed(this.value)">
+        <br><br>
+        <button class="btn btn-primary" onclick="startAutoscroll()">Iniciar Autoscroll</button>
+        <button class="btn btn-danger" onclick="stopAutoscroll()">Parar Autoscroll</button>
+        <button class="btn btn-secondary" onclick="toggleDarkMode()">Modo Escuro</button>
+    </div>
+
+    <script>
+        let scrollInterval;
+        let speed = 100; // Intervalo inicial para a velocidade
+
+        function startAutoscroll() {
+            if (scrollInterval) clearInterval(scrollInterval);
+            const userText = document.getElementById('userText').value;
+            const outputDiv = document.getElementById('output');
+            outputDiv.innerHTML = `<p>${userText.replace(/\n/g, '<br>')}</p>`;
+            outputDiv.scrollTop = 0; // Reinicia a rolagem
+            scrollInterval = setInterval(autoscroll, speed);
+        }
+
+        function autoscroll() {
+            const outputDiv = document.getElementById('output');
+            outputDiv.scrollBy({ top: 1, behavior: 'smooth' });
+            if (outputDiv.scrollHeight - outputDiv.scrollTop <= outputDiv.clientHeight + 1) { // Adiciona um buffer para parar no final
+                clearInterval(scrollInterval); // Para o autoscroll ao chegar no final
+            }
+        }
+
+        function stopAutoscroll() {
+            if (scrollInterval) clearInterval(scrollInterval);
+        }
+
+        function adjustSpeed(newSpeed) {
+            speed = 200 - newSpeed * 2; // Ajusta a escala para controle da velocidade
+            document.getElementById('speedValue').textContent = newSpeed;
+            if (scrollInterval) {
+                clearInterval(scrollInterval);
+                scrollInterval = setInterval(autoscroll, speed);
+            }
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+    </script>
+</body>
+</html>
