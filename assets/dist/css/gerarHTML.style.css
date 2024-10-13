@@ -1,0 +1,50 @@
+main {
+  background-color: #212529;
+  color: #fff;
+}
+
+header {
+  background-color: #212529;
+  color: #fff;
+  display: flex; /* Adicione display: flex; */
+  align-items: center;
+  justify-content: center; /* Adicione justify-content: center; */
+}
+
+.form-control {
+  background-color: #343a40;
+  color: #fff;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+.modal-content {
+  background-color: #212529; 
+  color: #fff; 
+}
+
+.modal-header {
+  border-bottom: 1px solid #343a40; 
+}
+
+.modal-footer {
+  border-top: 1px solid #343a40; 
+}
+
+.modal-footer .btn-primary {
+  background-color: #007bff; 
+  border-color: #007bff;
+}
+
+.modal-footer .btn-secondary {
+  background-color: #6c757d; 
+  border-color: #6c757d;
+}
