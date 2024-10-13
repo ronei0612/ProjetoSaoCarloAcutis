@@ -72,6 +72,11 @@ window.addEventListener('load', () => {
     complementoInput.value = complemento;
   }
 
+  let respostaHtml = localStorage.getItem('respostaHtml');
+  if (respostaHtml) {
+    document.getElementById('respostaHtml').srcdoc = respostaHtml;
+  }
+
   perguntaInput.focus();
   setupSpeechRecognition(); 
 });
@@ -132,6 +137,17 @@ async function enviarPergunta() {
 
       // Atualiza o conteúdo do iframe
       document.getElementById('respostaHtml').srcdoc = htmlCode;
+
+      // Salva o novo HTML no localStorage
+      localStorage.setItem('respostaHtml', htmlCode);
+
+      // Salva o antigo HTML no localStorage
+      let antigoHtml = localStorage.getItem('respostaHtmlAnterior');
+      if (antigoHtml) {
+        localStorage.setItem('respostaHtmlAnterior', resposta);
+      } else {
+        localStorage.setItem('respostaHtmlAnterior', resposta);
+      }
     }
 
   } catch (error) {
