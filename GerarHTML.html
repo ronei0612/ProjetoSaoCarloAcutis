@@ -12,10 +12,7 @@
 
 <body>
   <!-- <header class="mt-0 d-flex align-items-center w-100"></header> -->
-  <header class="container-fluid mt-0 d-flex align-items-center">
-    <button id="btnConfiguracao" class="btn btn-secondary" data-toggle="modal" data-target="#modalConfiguracao">
-      <i class="bi bi-gear"></i>
-    </button>
+  <header class="container-fluid mt-0">
     <h1 class="ml-3">Gerar Página</h1> 
   </header>
 
@@ -37,6 +34,18 @@
         </div>
 
         <button id="enviar" class="btn btn-primary btn-block mt-2">Gerar</button>
+
+        <div class="d-flex align-items-center">
+          <button id="btnConfiguracao" class="btn btn-secondary btn-block" data-toggle="modal" data-target="#modalConfiguracao">
+            <i class="bi bi-gear"></i>
+          </button>
+          <button id="desfazer" class="btn btn-warning btn-block m-2" disabled>
+            <i class="bi bi-arrow-counterclockwise"></i>
+          </button>
+          <button id="colar" class="btn btn-secondary btn-block m-2">
+          <i class="bi bi-clipboard"></i>
+          </button>
+        </header>
       </div>
     </div>
   </main>

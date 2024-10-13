@@ -9,6 +9,7 @@ const complementoInput = document.getElementById('complemento');
 // Botão de Configuração
 const btnConfiguracao = document.getElementById('btnConfiguracao');
 const salvarConfiguracaoButton = document.getElementById('salvarConfiguracao');
+const desfazerButton = document.getElementById('desfazer');
 
 let recognition = null;
 let isListening = false;
@@ -98,9 +99,9 @@ async function enviarPergunta() {
   }
 
   //pergunta = complementoInput.value + ' ' + pergunta;
-  const htmlCode = document.getElementById('respostaHtml').contentWindow.document.body.innerHTML;
-  pergunta = complementoInput.value + ' ' + pergunta + ' ' + htmlCode;
-
+  const htmlCodeIframe = document.getElementById('respostaHtml').contentWindow.document.body.innerHTML;
+  pergunta = complementoInput.value + ' ' + pergunta + ' ' + htmlCodeIframe;
+  
   localStorage.setItem('apiToken', apiToken);
   localStorage.setItem('complemento', complementoInput.value);
   enviarButton.disabled = true;
@@ -145,19 +146,14 @@ async function enviarPergunta() {
       localStorage.setItem('respostaHtml', htmlCode);
 
       // Salva o antigo HTML no localStorage
-      let antigoHtml = localStorage.getItem('respostaHtmlAnterior');
-      if (antigoHtml) {
-        localStorage.setItem('respostaHtmlAnterior', htmlCode);
-      } else {
-        localStorage.setItem('respostaHtmlAnterior', htmlCode);
-      }
+      localStorage.setItem('respostaHtmlAnterior', htmlCodeIframe);
     } else {
       // Atualiza o conteúdo do iframe com o texto da resposta
       document.getElementById('respostaHtml').srcdoc = resposta;
     }
 
-    // Salva o novo HTML no localStorage, independentemente da tag ```html
     localStorage.setItem('respostaHtml', resposta);
+    desfazerButton.disabled = false;
 
   } catch (error) {
     console.error(error);
@@ -204,3 +200,15 @@ perguntaInput.addEventListener('keydown', (event) => {
 });
 
 enviarButton.addEventListener('click', enviarPergunta);
+
+desfazerButton.addEventListener('click', () => {
+  // Recupera o HTML anterior
+  let antigoHtml = localStorage.getItem('respostaHtmlAnterior');
+  if (antigoHtml) {
+    // Atualiza o iframe
+    document.getElementById('respostaHtml').srcdoc = antigoHtml;
+    // Salva o antigo HTML como o atual
+    localStorage.setItem('respostaHtml', antigoHtml);
+    desfazerButton.disabled = true;
+  }
+});
