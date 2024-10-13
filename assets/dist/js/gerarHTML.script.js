@@ -97,7 +97,10 @@ async function enviarPergunta() {
     return;
   }
 
-  pergunta = complementoInput.value + ' ' + pergunta;
+  //pergunta = complementoInput.value + ' ' + pergunta;
+  const htmlCode = document.getElementById('respostaHtml').contentWindow.document.body.innerHTML;
+  pergunta = complementoInput.value + ' ' + pergunta + ' ' + htmlCode;
+
   localStorage.setItem('apiToken', apiToken);
   localStorage.setItem('complemento', complementoInput.value);
   enviarButton.disabled = true;
@@ -144,11 +147,17 @@ async function enviarPergunta() {
       // Salva o antigo HTML no localStorage
       let antigoHtml = localStorage.getItem('respostaHtmlAnterior');
       if (antigoHtml) {
-        localStorage.setItem('respostaHtmlAnterior', resposta);
+        localStorage.setItem('respostaHtmlAnterior', htmlCode);
       } else {
-        localStorage.setItem('respostaHtmlAnterior', resposta);
+        localStorage.setItem('respostaHtmlAnterior', htmlCode);
       }
+    } else {
+      // Atualiza o conteúdo do iframe com o texto da resposta
+      document.getElementById('respostaHtml').srcdoc = resposta;
     }
+
+    // Salva o novo HTML no localStorage, independentemente da tag ```html
+    localStorage.setItem('respostaHtml', resposta);
 
   } catch (error) {
     console.error(error);
