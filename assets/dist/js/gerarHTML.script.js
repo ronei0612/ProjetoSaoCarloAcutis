@@ -6,10 +6,10 @@ const microfoneButton = document.getElementById('microfone');
 const modoEscuroButton = document.getElementById('modoEscuro');
 const limparButton = document.getElementById('limpar');
 const complementoInput = document.getElementById('complemento');
-// Botão de Configuração
 const btnConfiguracao = document.getElementById('btnConfiguracao');
 const salvarConfiguracaoButton = document.getElementById('salvarConfiguracao');
 const desfazerButton = document.getElementById('desfazer');
+const restaurarPadraoButton = document.getElementById('restaurar');
 
 let recognition = null;
 let isListening = false;
@@ -182,7 +182,6 @@ salvarConfiguracaoButton.addEventListener('click', () => {
   localStorage.setItem('apiToken', apiToken);
   localStorage.setItem('complemento', complemento);
 
-  // Fechar o modal
   $('#modalConfiguracao').modal('hide');
 });
 
@@ -212,3 +211,17 @@ desfazerButton.addEventListener('click', () => {
     desfazerButton.disabled = true;
   }
 });
+
+function restaurarPadrao() {
+  if (confirm('Certeza de que deseja restaurar as configurações padrão?')) {
+    localStorage.clear();
+    respostaHtmlDiv.innerHTML = '';
+    apiTokenInput.value = '';
+    perguntaInput.value = '';
+    complementoInput.value = "Não explique, quero somente o código em uma página única";
+    localStorage.setItem('complemento', "Não explique, quero somente o código em uma página única");
+    $('#modalConfiguracao').modal('hide');
+  }
+}
+
+restaurarPadraoButton.addEventListener('click', restaurarPadrao);
