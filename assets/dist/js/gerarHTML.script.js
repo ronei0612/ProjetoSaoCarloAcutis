@@ -88,7 +88,7 @@ window.addEventListener('load', () => {
 });
 
 async function enviarPergunta() {
-  respostaHtmlDiv.srcdoc = ''; 
+  //respostaHtmlDiv.srcdoc = ''; 
   
   let pergunta = perguntaInput.value.trim();
   const apiToken = apiTokenInput.value;
@@ -167,7 +167,7 @@ async function enviarPergunta() {
     enviarButton.textContent = "Enviar";
     perguntaInput.focus();
 
-    respostaHtmlDiv.scrollIntoView({ behavior: 'smooth' });
+    //respostaHtmlDiv.scrollIntoView({ behavior: 'smooth' });
   }
 }
 
