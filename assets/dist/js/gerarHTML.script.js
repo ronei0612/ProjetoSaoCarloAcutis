@@ -8,10 +8,10 @@ const complementoInput = document.getElementById('complemento');
 const btnConfiguracao = document.getElementById('btnConfiguracao');
 const salvarConfiguracaoButton = document.getElementById('salvarConfiguracao');
 const desfazerButton = document.getElementById('desfazer');
+const colarButton = document.getElementById('colar');
 
 let recognition = null;
 let isListening = false;
-let listeningTimer = null;
 
 function setupSpeechRecognition() {
   if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
@@ -28,39 +28,43 @@ function setupSpeechRecognition() {
         }
       }
       perguntaInput.value += finalTranscript;
-
-      clearTimeout(listeningTimer);
-      listeningTimer = setTimeout(() => {
-        recognition.stop();
-        setTimeout(() => {
-          if (microfoneButton.innerHTML.includes('bi-mic-mute')) {
-            recognition.start();
-          }
-        }, 500);
-      }, 5000);
     };
 
-    microfoneButton.addEventListener('click', () => {
-      toggleSpeechRecognition();
-    });
+    recognition.onstart = () => {
+      microfoneButton.innerHTML = '<i class="bi bi-mic-mute"></i>';
+      isListening = true;
+    };
+
+    recognition.onend = () => {
+      microfoneButton.innerHTML = '<i class="bi bi-mic"></i>';
+      isListening = false;
+    };
+
+    microfoneButton.addEventListener('click', toggleSpeechRecognition);
   } else {
     alert('Seu navegador não suporta reconhecimento de fala.');
   }
 }
 
+// Inicia ou para o reconhecimento de voz
 function toggleSpeechRecognition() {
   if (!isListening) {
     recognition.start();
-    microfoneButton.innerHTML = '<i class="bi bi-mic-mute"></i>';
-    isListening = true;
   } else {
     recognition.stop();
-    microfoneButton.innerHTML = '<i class="bi bi-mic"></i>';
-    isListening = false;
   }
 }
 
 window.addEventListener('load', () => {
+  loadSavedData();
+  setupSpeechRecognition();
+  perguntaInput.focus();
+
+  const altura = window.innerHeight;
+  respostaHtmlDiv.style.height = altura + 'px';
+});
+
+function loadSavedData() {
   let savedToken = localStorage.getItem('apiToken');
   if (savedToken) {
     apiTokenInput.value = savedToken;
@@ -79,18 +83,10 @@ window.addEventListener('load', () => {
   if (respostaHtml) {
     respostaHtmlDiv.srcdoc = respostaHtml;
   }
-
-  const altura = window.innerHeight;
-  respostaHtmlDiv.style.height = altura + 'px';
-
-  perguntaInput.focus();
-  setupSpeechRecognition(); 
-});
+}
 
 async function enviarPergunta() {
-  //respostaHtmlDiv.srcdoc = ''; 
-  
-  let pergunta = perguntaInput.value.trim();
+  const pergunta = perguntaInput.value.trim();
   const apiToken = apiTokenInput.value;
 
   if (!apiToken) {
@@ -103,18 +99,11 @@ async function enviarPergunta() {
     return;
   }
 
-  //pergunta = complementoInput.value + ' ' + pergunta;
   const htmlCodeIframe = respostaHtmlDiv.contentWindow.document.body.innerHTML;
-  // if (htmlCodeIframe.indexOf("```html") !== -1) {
-  //   const inicioHtml = htmlCodeIframe.indexOf("```html") + 7; 
-  //   const fimHtml = htmlCodeIframe.indexOf("```", inicioHtml);
-  //   htmlCodeIframe = htmlCodeIframe.substring(inicioHtml, fimHtml);
-  // }
-
-  pergunta = complementoInput.value + ' ' + pergunta + ' ' + htmlCodeIframe;
+  const perguntaCompleta = complementoInput.value + ' ' + pergunta + ' ' + htmlCodeIframe;
   
-  localStorage.setItem('apiToken', apiToken);
-  localStorage.setItem('complemento', complementoInput.value);
+  //localStorage.setItem('apiToken', apiToken);
+  //localStorage.setItem('complemento', complementoInput.value);
   enviarButton.disabled = true;
   enviarButton.textContent = "Carregando...";
 
@@ -131,7 +120,7 @@ async function enviarPergunta() {
             {
               "parts": [
                 {
-                  "text": pergunta
+                  "text": perguntaCompleta
                 }
               ]
             }
@@ -141,22 +130,18 @@ async function enviarPergunta() {
     );
 
     const data = await response.json();
-    const resposta = data.candidates[0].content.parts[0].text;
+    let resposta = data.candidates[0].content.parts[0].text;
+    const htmlAnterior = localStorage.getItem('respostaHtml');
 
     if (resposta.indexOf("```html") !== -1) {
-      // Extraia o código HTML da resposta
       const inicioHtml = resposta.indexOf("```html") + 7; 
       const fimHtml = resposta.indexOf("```", inicioHtml);
-      const htmlCode = resposta.substring(inicioHtml, fimHtml);
-      const htmlAnterior = localStorage.getItem('respostaHtml');
-
-      respostaHtmlDiv.srcdoc = htmlCode;
-      localStorage.setItem('respostaHtml', htmlCode);
-      localStorage.setItem('respostaHtmlAnterior', htmlAnterior);
-    } else {
-      respostaHtmlDiv.srcdoc = resposta;
+      resposta = resposta.substring(inicioHtml, fimHtml);
     }
 
+    respostaHtmlDiv.srcdoc = resposta;
+    localStorage.setItem('respostaHtml', resposta);
+    localStorage.setItem('respostaHtmlAnterior', htmlAnterior);
     desfazerButton.disabled = false;
 
   } catch (error) {
@@ -166,8 +151,6 @@ async function enviarPergunta() {
     enviarButton.disabled = false;
     enviarButton.textContent = "Enviar";
     perguntaInput.focus();
-
-    //respostaHtmlDiv.scrollIntoView({ behavior: 'smooth' });
   }
 }
 
@@ -191,6 +174,28 @@ salvarConfiguracaoButton.addEventListener('click', () => {
   $('#modalConfiguracao').modal('hide');
 });
 
+desfazerButton.addEventListener('click', () => {
+  const htmlAnterior = localStorage.getItem('respostaHtmlAnterior');
+  if (htmlAnterior) {
+    respostaHtmlDiv.srcdoc = htmlAnterior;
+    localStorage.setItem('respostaHtml', htmlAnterior);
+    desfazerButton.disabled = true;
+  }
+});
+
+document.getElementById('restaurar').addEventListener('click', () => {
+  if (confirm('Tem certeza de que deseja restaurar as configurações padrão?')) {
+    localStorage.clear();
+    respostaHtmlDiv.srcdoc = '';
+    perguntaInput.value = '';
+    complementoInput.value = "Não explique, quero somente o código em uma página única";
+    const apiToken = apiTokenInput.value;
+    localStorage.setItem('apiToken', apiToken);
+    loadSavedData();
+    window.location.reload();
+  }
+});
+
 perguntaInput.addEventListener('keydown', (event) => {
   if (event.ctrlKey && event.key === 'Enter') {
     event.preventDefault();
@@ -204,29 +209,16 @@ perguntaInput.addEventListener('keydown', (event) => {
   }
 });
 
+// Adiciona eventos de clique aos botões
 enviarButton.addEventListener('click', enviarPergunta);
 
-desfazerButton.addEventListener('click', () => {
-  let antigoHtml = localStorage.getItem('respostaHtmlAnterior');
-  if (antigoHtml) {
-    respostaHtmlDiv.srcdoc = antigoHtml;
-    localStorage.setItem('respostaHtml', antigoHtml);
-    desfazerButton.disabled = true;
-  }
-});
-
-document.getElementById('restaurar').addEventListener('click', () => {
-  if (confirm('Tem certeza de que deseja restaurar as configurações padrão?')) {
-    localStorage.clear();
-    respostaHtmlDiv.srcdoc = '';
-    perguntaInput.value = '';
-    complementoInput.value = "Não explique, quero somente o código em uma página única";
-    
-    const apiToken = apiTokenInput.value;
-    const complemento = complementoInput.value;
-    localStorage.setItem('apiToken', apiToken);
-    localStorage.setItem('complemento', complemento);
-
-    window.location.reload();
-  }
+colarButton.addEventListener('click', () => {
+  navigator.clipboard.readText()
+  .then(text => {
+    perguntaInput.value += text;
+    perguntaInput.focus();
+  })
+  .catch(err => {
+    console.error('Falha ao colar:', err);
+  });
 });
