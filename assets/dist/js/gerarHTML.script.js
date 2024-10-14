@@ -8,6 +8,7 @@ const complementoInput = document.getElementById('complemento');
 const btnConfiguracao = document.getElementById('btnConfiguracao');
 const salvarConfiguracaoButton = document.getElementById('salvarConfiguracao');
 const desfazerButton = document.getElementById('desfazer');
+const refazerButton = document.getElementById('refazer');
 const colarButton = document.getElementById('colar');
 
 let recognition = null;
@@ -83,8 +84,8 @@ function loadSavedData() {
     respostaHtmlDiv.srcdoc = respostaHtml;
   }
 
-  let respostaHtmlAnterior = localStorage.getItem('respostaHtmlAnterior');
-  if (respostaHtmlAnterior) {
+  let respostaHtmlDesfazer = localStorage.getItem('respostaHtmlDesfazer');
+  if (respostaHtmlDesfazer) {
     desfazerButton.disabled = false;
   }
 }
@@ -103,7 +104,7 @@ async function enviarPergunta() {
     return;
   }
 
-  const htmlCodeIframe = respostaHtmlDiv.contentWindow.document.body.innerHTML;
+  const htmlCodeIframe = respostaHtmlDiv.srcdoc;
   const perguntaCompleta = complementoInput.value + ' ' + pergunta + ' ' + htmlCodeIframe;
   
   //localStorage.setItem('apiToken', apiToken);
@@ -145,8 +146,9 @@ async function enviarPergunta() {
 
     respostaHtmlDiv.srcdoc = resposta;
     localStorage.setItem('respostaHtml', resposta);
-    localStorage.setItem('respostaHtmlAnterior', htmlAnterior);
+    localStorage.setItem('respostaHtmlDesfazer', htmlAnterior);
     desfazerButton.disabled = false;
+    refazerButton.disabled = false;
 
   } catch (error) {
     console.error(error);
@@ -179,11 +181,26 @@ salvarConfiguracaoButton.addEventListener('click', () => {
 });
 
 desfazerButton.addEventListener('click', () => {
-  const htmlAnterior = localStorage.getItem('respostaHtmlAnterior');
+  const htmlAnterior = localStorage.getItem('respostaHtmlDesfazer');
   if (htmlAnterior) {
     respostaHtmlDiv.srcdoc = htmlAnterior;
+    const htmlAtual = localStorage.getItem('respostaHtml');
+    localStorage.setItem('respostaHtmlRefazer', htmlAtual);
     localStorage.setItem('respostaHtml', htmlAnterior);
     desfazerButton.disabled = true;
+    refazerButton.disabled = false;
+  }
+});
+
+refazerButton.addEventListener('click', () => {
+  const htmlRefazer = localStorage.getItem('respostaHtmlRefazer');
+  if (htmlRefazer) {
+    respostaHtmlDiv.srcdoc = htmlRefazer;
+    const htmlAtual = localStorage.getItem('respostaHtml');
+    localStorage.setItem('respostaHtmlDesfazer', htmlAtual);
+    localStorage.setItem('respostaHtml', htmlRefazer);
+    refazerButton.disabled = true;
+    desfazerButton.disabled = false;
   }
 });
 
