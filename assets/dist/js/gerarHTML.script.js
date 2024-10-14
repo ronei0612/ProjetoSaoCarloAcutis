@@ -14,9 +14,9 @@ const colarButton = document.getElementById('colar');
 let recognition = null;
 let isListening = false;
 
-function showSpinner() {
-  enviarButton.classList.add('disabled');
-  enviarButton.textContent = '';
+function showSpinner(element) {
+  element.classList.add('disabled');
+  element.textContent = '';
 
   const spinner = document.createElement('span');
   spinner.classList.add('spinner-border', 'spinner-border-sm', 'mr-2');
@@ -28,17 +28,16 @@ function showSpinner() {
 
   spinner.appendChild(spinnerText); 
 
-  enviarButton.appendChild(spinner);
+  element.appendChild(spinner);
 }
 
-function hideSpinner() {
-  enviarButton.classList.remove('disabled');
-  enviarButton.textContent = 'Gerar';
+function hideSpinner(element, text) {
+  element.classList.remove('disabled');
+  element.innerHTML = text;
 
-  // Remove o spinner
-  const spinner = enviarButton.querySelector('.spinner-border');
+  const spinner = element.querySelector('.spinner-border');
   if (spinner) {
-    enviarButton.removeChild(spinner);
+    element.removeChild(spinner);
   }
 }
 
@@ -84,6 +83,7 @@ function toggleSpeechRecognition() {
 }
 
 window.addEventListener('load', () => {
+  fetch('https://apinode-h4wt.onrender.com/');
   loadSavedData();
   setupSpeechRecognition();
   perguntaInput.focus();
@@ -141,7 +141,7 @@ async function enviarPergunta() {
   enviarButton.textContent = "Carregando...";
 
   try {
-    showSpinner();
+    showSpinner(enviarButton);
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiToken}`,
       {
@@ -163,16 +163,17 @@ async function enviarPergunta() {
       }
     );
 
+    const htmlAnterior = localStorage.getItem('respostaHtml');
+
     const data = await response.json();
     let resposta = data.candidates[0].content.parts[0].text;
-    const htmlAnterior = localStorage.getItem('respostaHtml');
 
     if (resposta.indexOf("```html") !== -1) {
       const inicioHtml = resposta.indexOf("```html") + 7; 
       const fimHtml = resposta.indexOf("```", inicioHtml);
       resposta = resposta.substring(inicioHtml, fimHtml);
     }
-
+    
     respostaHtmlDiv.srcdoc = resposta;
     localStorage.setItem('respostaHtml', resposta);
     localStorage.setItem('respostaHtmlDesfazer', htmlAnterior);
@@ -186,7 +187,7 @@ async function enviarPergunta() {
     enviarButton.disabled = false;
     enviarButton.textContent = "Enviar";
     perguntaInput.focus();
-    hideSpinner();
+    hideSpinner(enviarButton, 'Gerar');
   }
 }
 
@@ -263,12 +264,84 @@ perguntaInput.addEventListener('keydown', (event) => {
 enviarButton.addEventListener('click', enviarPergunta);
 
 colarButton.addEventListener('click', () => {
-  navigator.clipboard.readText()
-  .then(text => {
-    perguntaInput.value += text;
-    perguntaInput.focus();
-  })
-  .catch(err => {
-    console.error('Falha ao colar:', err);
-  });
+  gerarLinkImagem();
+  // navigator.clipboard.readText()
+  // .then(text => {
+  //   perguntaInput.value += text;
+  //   perguntaInput.focus();
+  // })
+  // .catch(err => {
+  //   console.error('Falha ao colar:', err);
+  // });
 });
+                
+// function gerarImagem() {
+//     var imgs = document.getElementById('respostaHtml').getElementsByTagName('img');
+
+//     for (var i = 0; i < imgs.length; i++) {
+//         if (imgs[i].src.startsWith("https://photos.") || imgs[i].src.startsWith("https://www.bing.com/images/create")) {
+//             (function(img) {
+//                 fetch('https://apinode-h4wt.onrender.com/fetch-url', {
+//                     method: 'POST',
+//                     headers: {
+//                         'Content-Type': 'application/json'
+//                     },
+//                     body: JSON.stringify({ url: img.src })
+//                 })
+//                 .then(response => response.text())
+//                 .then(data => {
+//                     img.src = data;
+//                 })
+//                 .catch(error => alert('Erro ao buscar a nova URL:' + error));
+//             })(imgs[i]);
+//         }
+//     }
+// }
+
+async function readClipboardFromDevTools() { 
+    try { 
+        const value = await navigator.clipboard.readText(); 
+        return value; 
+    } catch (error) { 
+        console.error("Error reading clipboard:", error); 
+        throw error; 
+    } 
+} 
+
+// async function colarDoClipboard() { 
+//     try { 
+//         const texto = await readClipboardFromDevTools(); 
+//         document.getElementById('texto').value = texto;
+//         gerarImagem();
+//     } catch (error) { 
+//         console.error("Erro ao colar:", error); 
+//         alert("Não foi possível colar o conteúdo do clipboard."); 
+//     } 
+// }
+
+async function gerarLinkImagem() {
+    try {
+      showSpinner(colarButton);
+        let texto = await readClipboardFromDevTools();
+
+        if (texto.startsWith("https://photos.") || texto.startsWith("https://www.bing.com/images/create")) {
+            const response = await fetch('https://apinode-h4wt.onrender.com/fetch-url', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url: texto })
+            });
+            texto = await response.text();
+            //await navigator.clipboard.writeText(data);
+        }
+        
+        perguntaInput.value = perguntaInput.value + ' ' + texto + ' ';
+
+    } catch (error) {
+        console.error("Erro ao gerar o link da imagem:", error);
+        alert("Erro ao gerar o link da imagem: " + error);
+    } finally {
+      hideSpinner(colarButton, '<i class="bi bi-clipboard"></i>');
+    }
+}
