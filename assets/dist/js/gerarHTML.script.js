@@ -3,13 +3,11 @@ const perguntaInput = document.getElementById('pergunta');
 const apiTokenInput = document.getElementById('apiToken');
 const respostaHtmlDiv = document.getElementById('respostaHtml');
 const microfoneButton = document.getElementById('microfone');
-const modoEscuroButton = document.getElementById('modoEscuro');
 const limparButton = document.getElementById('limpar');
 const complementoInput = document.getElementById('complemento');
 const btnConfiguracao = document.getElementById('btnConfiguracao');
 const salvarConfiguracaoButton = document.getElementById('salvarConfiguracao');
 const desfazerButton = document.getElementById('desfazer');
-const restaurarPadraoButton = document.getElementById('restaurar');
 
 let recognition = null;
 let isListening = false;
@@ -71,22 +69,26 @@ window.addEventListener('load', () => {
   let complemento = localStorage.getItem('complemento');
   if (complemento) {
     complementoInput.value = complemento;
+  } else {
+    complemento = "Não explique, quero somente o código em uma página única";
+    complementoInput.value = complemento;
+    localStorage.setItem('complemento', complemento);
   }
 
   let respostaHtml = localStorage.getItem('respostaHtml');
   if (respostaHtml) {
-    document.getElementById('respostaHtml').srcdoc = respostaHtml;
+    respostaHtmlDiv.srcdoc = respostaHtml;
   }
 
-  const altura = window.innerHeight / 1;
-	document.getElementById('respostaHtml').style.height = altura + 'px';
+  const altura = window.innerHeight;
+  respostaHtmlDiv.style.height = altura + 'px';
 
   perguntaInput.focus();
   setupSpeechRecognition(); 
 });
 
 async function enviarPergunta() {
-  respostaHtmlDiv.innerHTML = ''; 
+  respostaHtmlDiv.srcdoc = ''; 
   
   let pergunta = perguntaInput.value.trim();
   const apiToken = apiTokenInput.value;
@@ -102,7 +104,13 @@ async function enviarPergunta() {
   }
 
   //pergunta = complementoInput.value + ' ' + pergunta;
-  const htmlCodeIframe = document.getElementById('respostaHtml').contentWindow.document.body.innerHTML;
+  const htmlCodeIframe = respostaHtmlDiv.contentWindow.document.body.innerHTML;
+  // if (htmlCodeIframe.indexOf("```html") !== -1) {
+  //   const inicioHtml = htmlCodeIframe.indexOf("```html") + 7; 
+  //   const fimHtml = htmlCodeIframe.indexOf("```", inicioHtml);
+  //   htmlCodeIframe = htmlCodeIframe.substring(inicioHtml, fimHtml);
+  // }
+
   pergunta = complementoInput.value + ' ' + pergunta + ' ' + htmlCodeIframe;
   
   localStorage.setItem('apiToken', apiToken);
@@ -135,29 +143,21 @@ async function enviarPergunta() {
     const data = await response.json();
     const resposta = data.candidates[0].content.parts[0].text;
 
-    // Verifica se a resposta contém a tag ```html
     if (resposta.indexOf("```html") !== -1) {
       // Extraia o código HTML da resposta
       const inicioHtml = resposta.indexOf("```html") + 7; 
       const fimHtml = resposta.indexOf("```", inicioHtml);
       const htmlCode = resposta.substring(inicioHtml, fimHtml);
 
-      // Atualiza o conteúdo do iframe
-      document.getElementById('respostaHtml').srcdoc = htmlCode;
-
-      // Salva o novo HTML no localStorage
+      respostaHtmlDiv.srcdoc = htmlCode;
       localStorage.setItem('respostaHtml', htmlCode);
-
-      // Salva o antigo HTML no localStorage
       localStorage.setItem('respostaHtmlAnterior', htmlCodeIframe);
     } else {
-      // Atualiza o conteúdo do iframe com o texto da resposta
-      document.getElementById('respostaHtml').srcdoc = resposta;
+      respostaHtmlDiv.srcdoc = resposta;
     }
 
-    localStorage.setItem('respostaHtml', resposta);
     desfazerButton.disabled = false;
-
+    
   } catch (error) {
     console.error(error);
     mostrarErro('Ocorreu um erro ao processar a sua requisição.');
@@ -171,7 +171,7 @@ async function enviarPergunta() {
 }
 
 function mostrarErro(mensagem) {
-  respostaHtmlDiv.innerHTML = `<p>${mensagem}</p>`;
+  respostaHtmlDiv.srcdoc = `<p>${mensagem}</p>`;
   perguntaInput.focus();
 }
 
@@ -206,27 +206,23 @@ perguntaInput.addEventListener('keydown', (event) => {
 enviarButton.addEventListener('click', enviarPergunta);
 
 desfazerButton.addEventListener('click', () => {
-  // Recupera o HTML anterior
   let antigoHtml = localStorage.getItem('respostaHtmlAnterior');
   if (antigoHtml) {
-    // Atualiza o iframe
-    document.getElementById('respostaHtml').srcdoc = antigoHtml;
-    // Salva o antigo HTML como o atual
+    respostaHtmlDiv.srcdoc = antigoHtml;
     localStorage.setItem('respostaHtml', antigoHtml);
     desfazerButton.disabled = true;
   }
 });
 
-function restaurarPadrao() {
-  if (confirm('Certeza de que deseja restaurar as configurações padrão?')) {
+document.getElementById('restaurar').addEventListener('click', () => {
+  if (confirm('Tem certeza de que deseja restaurar as configurações padrão?')) {
     localStorage.clear();
-    respostaHtmlDiv.innerHTML = '';
+    respostaHtmlDiv.srcdoc = '';
     apiTokenInput.value = '';
     perguntaInput.value = '';
     complementoInput.value = "Não explique, quero somente o código em uma página única";
     localStorage.setItem('complemento', "Não explique, quero somente o código em uma página única");
+
     $('#modalConfiguracao').modal('hide');
   }
-}
-
-restaurarPadraoButton.addEventListener('click', restaurarPadrao);
+});
