@@ -157,7 +157,7 @@ async function enviarPergunta() {
     }
 
     desfazerButton.disabled = false;
-    
+
   } catch (error) {
     console.error(error);
     mostrarErro('Ocorreu um erro ao processar a sua requisição.');
@@ -218,11 +218,14 @@ document.getElementById('restaurar').addEventListener('click', () => {
   if (confirm('Tem certeza de que deseja restaurar as configurações padrão?')) {
     localStorage.clear();
     respostaHtmlDiv.srcdoc = '';
-    apiTokenInput.value = '';
     perguntaInput.value = '';
     complementoInput.value = "Não explique, quero somente o código em uma página única";
-    localStorage.setItem('complemento', "Não explique, quero somente o código em uma página única");
+    
+    const apiToken = apiTokenInput.value;
+    const complemento = complementoInput.value;
+    localStorage.setItem('apiToken', apiToken);
+    localStorage.setItem('complemento', complemento);
 
-    $('#modalConfiguracao').modal('hide');
+    window.location.reload();
   }
 });
