@@ -10,6 +10,9 @@ const salvarConfiguracaoButton = document.getElementById('salvarConfiguracao');
 const desfazerButton = document.getElementById('desfazer');
 const refazerButton = document.getElementById('refazer');
 const colarButton = document.getElementById('colar');
+const githubTokenInput = document.getElementById('githubToken');
+const githubFileInput = document.getElementById('githubFileUrl');
+const githubBranchInput = document.getElementById('githubBranch');
 
 let recognition = null;
 let isListening = false;
@@ -116,6 +119,21 @@ function loadSavedData() {
   if (respostaHtmlDesfazer) {
     desfazerButton.disabled = false;
   }
+
+  let githubToken = localStorage.getItem('githubToken');
+  if (githubToken) {
+    githubTokenInput.value = githubToken;
+  }
+
+  let githubFile = localStorage.getItem('githubFile');
+  if (githubFile) {
+    githubFileInput.value = githubFile;
+  }
+
+  let githubBranch = localStorage.getItem('githubBranch');
+  if (githubBranch) {
+    githubBranchInput.value = githubBranch;
+  }
 }
 
 async function enviarPergunta() {
@@ -192,7 +210,8 @@ async function enviarPergunta() {
 }
 
 function mostrarErro(mensagem) {
-  respostaHtmlDiv.srcdoc = `<p>${mensagem}</p>`;
+  //respostaHtmlDiv.srcdoc = `<p>${mensagem}</p>`;
+  alert(mensagem);
   perguntaInput.focus();
 }
 
@@ -207,6 +226,14 @@ salvarConfiguracaoButton.addEventListener('click', () => {
 
   localStorage.setItem('apiToken', apiToken);
   localStorage.setItem('complemento', complemento);
+
+  const githubToken = githubTokenInput.value;
+  const githubFile = githubFileInput.value;
+  const githubBranch = githubBranchInput.value;
+
+  localStorage.setItem('githubToken', githubToken);
+  localStorage.setItem('githubFile', githubFile);
+  localStorage.setItem('githubBranch', githubBranch);
 
   $('#modalConfiguracao').modal('hide');
 });
@@ -345,3 +372,47 @@ async function gerarLinkImagem() {
       hideSpinner(colarButton, '<i class="bi bi-clipboard"></i>');
     }
 }
+
+document.getElementById('commit').addEventListener('click', async () => {
+  const githubToken = githubTokenInput.value;
+  const githubFile = githubFileInput.value;
+  const githubBranch = githubBranchInput.value;
+  const githubMessage = 'Update arquivo via url Gerar HTML';
+
+  if (!githubToken || !githubFile || !githubBranch) {
+    mostrarErro('Por favor, preencha todos os campos de configuração do GitHub.');
+    return;
+  }
+
+  const htmlContent = respostaHtmlDiv.srcdoc;
+
+  try {
+    showSpinner(document.getElementById('commit'));
+    const response = await fetch(githubFile, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${githubToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        "message": githubMessage,
+        "branch": githubBranch,
+        "content": btoa(htmlContent),
+        "sha": "" // Você pode adicionar o SHA do commit atual se precisar
+      })
+    });
+
+    if (response.ok) {
+      console.log('Commit realizado com sucesso!');
+      mostrarErro('Commit realizado com sucesso!');
+    } else {
+      console.error('Erro ao realizar o commit:', response.status);
+      mostrarErro('Erro ao realizar o commit. Verifique as configurações do GitHub.');
+    }
+  } catch (error) {
+    console.error('Erro ao realizar o commit:', error);
+    mostrarErro('Erro ao realizar o commit. Verifique as configurações do GitHub.');
+  } finally {
+    hideSpinner(document.getElementById('commit'), 'Commit');
+  }
+});
