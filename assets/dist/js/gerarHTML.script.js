@@ -148,10 +148,11 @@ async function enviarPergunta() {
       const inicioHtml = resposta.indexOf("```html") + 7; 
       const fimHtml = resposta.indexOf("```", inicioHtml);
       const htmlCode = resposta.substring(inicioHtml, fimHtml);
+      const htmlAnterior = localStorage.getItem('respostaHtml');
 
       respostaHtmlDiv.srcdoc = htmlCode;
       localStorage.setItem('respostaHtml', htmlCode);
-      localStorage.setItem('respostaHtmlAnterior', htmlCodeIframe);
+      localStorage.setItem('respostaHtmlAnterior', htmlAnterior);
     } else {
       respostaHtmlDiv.srcdoc = resposta;
     }
