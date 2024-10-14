@@ -3,17 +3,43 @@ const perguntaInput = document.getElementById('pergunta');
 const apiTokenInput = document.getElementById('apiToken');
 const respostaHtmlDiv = document.getElementById('respostaHtml');
 const microfoneButton = document.getElementById('microfone');
-const modoEscuroButton = document.getElementById('modoEscuro');
 const limparButton = document.getElementById('limpar');
 const complementoInput = document.getElementById('complemento');
-// Botão de Configuração
 const btnConfiguracao = document.getElementById('btnConfiguracao');
 const salvarConfiguracaoButton = document.getElementById('salvarConfiguracao');
 const desfazerButton = document.getElementById('desfazer');
+const refazerButton = document.getElementById('refazer');
+const colarButton = document.getElementById('colar');
 
 let recognition = null;
 let isListening = false;
-let listeningTimer = null;
+
+function showSpinner(element) {
+  element.classList.add('disabled');
+  element.textContent = '';
+
+  const spinner = document.createElement('span');
+  spinner.classList.add('spinner-border', 'spinner-border-sm', 'mr-2');
+  spinner.setAttribute('role', 'status');
+  
+  const spinnerText = document.createElement('span');
+  spinnerText.classList.add('sr-only');
+  spinnerText.textContent = 'Carregando...';
+
+  spinner.appendChild(spinnerText); 
+
+  element.appendChild(spinner);
+}
+
+function hideSpinner(element, text) {
+  element.classList.remove('disabled');
+  element.innerHTML = text;
+
+  const spinner = element.querySelector('.spinner-border');
+  if (spinner) {
+    element.removeChild(spinner);
+  }
+}
 
 function setupSpeechRecognition() {
   if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
@@ -30,21 +56,19 @@ function setupSpeechRecognition() {
         }
       }
       perguntaInput.value += finalTranscript;
-
-      clearTimeout(listeningTimer);
-      listeningTimer = setTimeout(() => {
-        recognition.stop();
-        setTimeout(() => {
-          if (microfoneButton.innerHTML.includes('bi-mic-mute')) {
-            recognition.start();
-          }
-        }, 500);
-      }, 5000);
     };
 
-    microfoneButton.addEventListener('click', () => {
-      toggleSpeechRecognition();
-    });
+    recognition.onstart = () => {
+      microfoneButton.innerHTML = '<i class="bi bi-mic-mute"></i>';
+      isListening = true;
+    };
+
+    recognition.onend = () => {
+      microfoneButton.innerHTML = '<i class="bi bi-mic"></i>';
+      isListening = false;
+    };
+
+    microfoneButton.addEventListener('click', toggleSpeechRecognition);
   } else {
     alert('Seu navegador não suporta reconhecimento de fala.');
   }
@@ -53,16 +77,22 @@ function setupSpeechRecognition() {
 function toggleSpeechRecognition() {
   if (!isListening) {
     recognition.start();
-    microfoneButton.innerHTML = '<i class="bi bi-mic-mute"></i>';
-    isListening = true;
   } else {
     recognition.stop();
-    microfoneButton.innerHTML = '<i class="bi bi-mic"></i>';
-    isListening = false;
   }
 }
 
 window.addEventListener('load', () => {
+  fetch('https://apinode-h4wt.onrender.com/');
+  loadSavedData();
+  setupSpeechRecognition();
+  perguntaInput.focus();
+
+  const altura = window.innerHeight;
+  respostaHtmlDiv.style.height = altura + 'px';
+});
+
+function loadSavedData() {
   let savedToken = localStorage.getItem('apiToken');
   if (savedToken) {
     apiTokenInput.value = savedToken;
@@ -71,21 +101,25 @@ window.addEventListener('load', () => {
   let complemento = localStorage.getItem('complemento');
   if (complemento) {
     complementoInput.value = complemento;
+  } else {
+    complemento = "Não explique, quero somente o código em uma página única";
+    complementoInput.value = complemento;
+    localStorage.setItem('complemento', complemento);
   }
 
   let respostaHtml = localStorage.getItem('respostaHtml');
   if (respostaHtml) {
-    document.getElementById('respostaHtml').srcdoc = respostaHtml;
+    respostaHtmlDiv.srcdoc = respostaHtml;
   }
 
-  perguntaInput.focus();
-  setupSpeechRecognition(); 
-});
+  let respostaHtmlDesfazer = localStorage.getItem('respostaHtmlDesfazer');
+  if (respostaHtmlDesfazer) {
+    desfazerButton.disabled = false;
+  }
+}
 
 async function enviarPergunta() {
-  respostaHtmlDiv.innerHTML = ''; 
-  
-  let pergunta = perguntaInput.value.trim();
+  const pergunta = perguntaInput.value.trim();
   const apiToken = apiTokenInput.value;
 
   if (!apiToken) {
@@ -98,16 +132,16 @@ async function enviarPergunta() {
     return;
   }
 
-  //pergunta = complementoInput.value + ' ' + pergunta;
-  const htmlCodeIframe = document.getElementById('respostaHtml').contentWindow.document.body.innerHTML;
-  pergunta = complementoInput.value + ' ' + pergunta + ' ' + htmlCodeIframe;
+  const htmlCodeIframe = respostaHtmlDiv.srcdoc;
+  const perguntaCompleta = complementoInput.value + ' ' + pergunta + ' ' + htmlCodeIframe;
   
-  localStorage.setItem('apiToken', apiToken);
-  localStorage.setItem('complemento', complementoInput.value);
+  //localStorage.setItem('apiToken', apiToken);
+  //localStorage.setItem('complemento', complementoInput.value);
   enviarButton.disabled = true;
   enviarButton.textContent = "Carregando...";
 
   try {
+    showSpinner(enviarButton);
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiToken}`,
       {
@@ -120,7 +154,7 @@ async function enviarPergunta() {
             {
               "parts": [
                 {
-                  "text": pergunta
+                  "text": perguntaCompleta
                 }
               ]
             }
@@ -129,31 +163,22 @@ async function enviarPergunta() {
       }
     );
 
-    const data = await response.json();
-    const resposta = data.candidates[0].content.parts[0].text;
+    const htmlAnterior = localStorage.getItem('respostaHtml');
 
-    // Verifica se a resposta contém a tag ```html
+    const data = await response.json();
+    let resposta = data.candidates[0].content.parts[0].text;
+
     if (resposta.indexOf("```html") !== -1) {
-      // Extraia o código HTML da resposta
       const inicioHtml = resposta.indexOf("```html") + 7; 
       const fimHtml = resposta.indexOf("```", inicioHtml);
-      const htmlCode = resposta.substring(inicioHtml, fimHtml);
-
-      // Atualiza o conteúdo do iframe
-      document.getElementById('respostaHtml').srcdoc = htmlCode;
-
-      // Salva o novo HTML no localStorage
-      localStorage.setItem('respostaHtml', htmlCode);
-
-      // Salva o antigo HTML no localStorage
-      localStorage.setItem('respostaHtmlAnterior', htmlCodeIframe);
-    } else {
-      // Atualiza o conteúdo do iframe com o texto da resposta
-      document.getElementById('respostaHtml').srcdoc = resposta;
+      resposta = resposta.substring(inicioHtml, fimHtml);
     }
-
+    
+    respostaHtmlDiv.srcdoc = resposta;
     localStorage.setItem('respostaHtml', resposta);
+    localStorage.setItem('respostaHtmlDesfazer', htmlAnterior);
     desfazerButton.disabled = false;
+    refazerButton.disabled = false;
 
   } catch (error) {
     console.error(error);
@@ -162,11 +187,12 @@ async function enviarPergunta() {
     enviarButton.disabled = false;
     enviarButton.textContent = "Enviar";
     perguntaInput.focus();
+    hideSpinner(enviarButton, 'Gerar');
   }
 }
 
 function mostrarErro(mensagem) {
-  respostaHtmlDiv.innerHTML = `<p>${mensagem}</p>`;
+  respostaHtmlDiv.srcdoc = `<p>${mensagem}</p>`;
   perguntaInput.focus();
 }
 
@@ -182,8 +208,44 @@ salvarConfiguracaoButton.addEventListener('click', () => {
   localStorage.setItem('apiToken', apiToken);
   localStorage.setItem('complemento', complemento);
 
-  // Fechar o modal
   $('#modalConfiguracao').modal('hide');
+});
+
+desfazerButton.addEventListener('click', () => {
+  const htmlAnterior = localStorage.getItem('respostaHtmlDesfazer');
+  if (htmlAnterior) {
+    respostaHtmlDiv.srcdoc = htmlAnterior;
+    const htmlAtual = localStorage.getItem('respostaHtml');
+    localStorage.setItem('respostaHtmlRefazer', htmlAtual);
+    localStorage.setItem('respostaHtml', htmlAnterior);
+    desfazerButton.disabled = true;
+    refazerButton.disabled = false;
+  }
+});
+
+refazerButton.addEventListener('click', () => {
+  const htmlRefazer = localStorage.getItem('respostaHtmlRefazer');
+  if (htmlRefazer) {
+    respostaHtmlDiv.srcdoc = htmlRefazer;
+    const htmlAtual = localStorage.getItem('respostaHtml');
+    localStorage.setItem('respostaHtmlDesfazer', htmlAtual);
+    localStorage.setItem('respostaHtml', htmlRefazer);
+    refazerButton.disabled = true;
+    desfazerButton.disabled = false;
+  }
+});
+
+document.getElementById('restaurar').addEventListener('click', () => {
+  if (confirm('Tem certeza de que deseja restaurar as configurações padrão?')) {
+    localStorage.clear();
+    respostaHtmlDiv.srcdoc = '';
+    perguntaInput.value = '';
+    complementoInput.value = "Não explique, quero somente o código em uma página única";
+    const apiToken = apiTokenInput.value;
+    localStorage.setItem('apiToken', apiToken);
+    loadSavedData();
+    window.location.reload();
+  }
 });
 
 perguntaInput.addEventListener('keydown', (event) => {
@@ -201,14 +263,85 @@ perguntaInput.addEventListener('keydown', (event) => {
 
 enviarButton.addEventListener('click', enviarPergunta);
 
-desfazerButton.addEventListener('click', () => {
-  // Recupera o HTML anterior
-  let antigoHtml = localStorage.getItem('respostaHtmlAnterior');
-  if (antigoHtml) {
-    // Atualiza o iframe
-    document.getElementById('respostaHtml').srcdoc = antigoHtml;
-    // Salva o antigo HTML como o atual
-    localStorage.setItem('respostaHtml', antigoHtml);
-    desfazerButton.disabled = true;
-  }
+colarButton.addEventListener('click', () => {
+  gerarLinkImagem();
+  // navigator.clipboard.readText()
+  // .then(text => {
+  //   perguntaInput.value += text;
+  //   perguntaInput.focus();
+  // })
+  // .catch(err => {
+  //   console.error('Falha ao colar:', err);
+  // });
 });
+                
+// function gerarImagem() {
+//     var imgs = document.getElementById('respostaHtml').getElementsByTagName('img');
+
+//     for (var i = 0; i < imgs.length; i++) {
+//         if (imgs[i].src.startsWith("https://photos.") || imgs[i].src.startsWith("https://www.bing.com/images/create")) {
+//             (function(img) {
+//                 fetch('https://apinode-h4wt.onrender.com/fetch-url', {
+//                     method: 'POST',
+//                     headers: {
+//                         'Content-Type': 'application/json'
+//                     },
+//                     body: JSON.stringify({ url: img.src })
+//                 })
+//                 .then(response => response.text())
+//                 .then(data => {
+//                     img.src = data;
+//                 })
+//                 .catch(error => alert('Erro ao buscar a nova URL:' + error));
+//             })(imgs[i]);
+//         }
+//     }
+// }
+
+async function readClipboardFromDevTools() { 
+    try { 
+        const value = await navigator.clipboard.readText(); 
+        return value; 
+    } catch (error) { 
+        console.error("Error reading clipboard:", error); 
+        throw error; 
+    } 
+} 
+
+// async function colarDoClipboard() { 
+//     try { 
+//         const texto = await readClipboardFromDevTools(); 
+//         document.getElementById('texto').value = texto;
+//         gerarImagem();
+//     } catch (error) { 
+//         console.error("Erro ao colar:", error); 
+//         alert("Não foi possível colar o conteúdo do clipboard."); 
+//     } 
+// }
+
+async function gerarLinkImagem() {
+    try {
+      showSpinner(colarButton);
+        let texto = await readClipboardFromDevTools();
+
+        if (texto.startsWith("https://photos.") || texto.startsWith("https://www.bing.com/images/create")) {
+            const response = await fetch('https://apinode-h4wt.onrender.com/fetch-url', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url: texto })
+            });
+            texto = await response.text();
+            //await navigator.clipboard.writeText(data);
+        }
+        
+        perguntaInput.value = perguntaInput.value + ' ' + texto + ' ';
+
+    } catch (error) {
+        console.error("Erro ao gerar o link da imagem:", error);
+        alert("Erro ao gerar o link da imagem: " + error);
+    } finally {
+      hideSpinner(colarButton, '<i class="bi bi-clipboard"></i>');
+    }
+}
