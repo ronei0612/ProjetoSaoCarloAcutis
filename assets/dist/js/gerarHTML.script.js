@@ -14,6 +14,34 @@ const colarButton = document.getElementById('colar');
 let recognition = null;
 let isListening = false;
 
+function showSpinner() {
+  enviarButton.classList.add('disabled');
+  enviarButton.textContent = '';
+
+  const spinner = document.createElement('span');
+  spinner.classList.add('spinner-border', 'spinner-border-sm', 'mr-2');
+  spinner.setAttribute('role', 'status');
+  
+  const spinnerText = document.createElement('span');
+  spinnerText.classList.add('sr-only');
+  spinnerText.textContent = 'Carregando...';
+
+  spinner.appendChild(spinnerText); 
+
+  enviarButton.appendChild(spinner);
+}
+
+function hideSpinner() {
+  enviarButton.classList.remove('disabled');
+  enviarButton.textContent = 'Gerar';
+
+  // Remove o spinner
+  const spinner = enviarButton.querySelector('.spinner-border');
+  if (spinner) {
+    enviarButton.removeChild(spinner);
+  }
+}
+
 function setupSpeechRecognition() {
   if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
     recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
@@ -113,6 +141,7 @@ async function enviarPergunta() {
   enviarButton.textContent = "Carregando...";
 
   try {
+    showSpinner();
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiToken}`,
       {
@@ -157,6 +186,7 @@ async function enviarPergunta() {
     enviarButton.disabled = false;
     enviarButton.textContent = "Enviar";
     perguntaInput.focus();
+    hideSpinner();
   }
 }
 
