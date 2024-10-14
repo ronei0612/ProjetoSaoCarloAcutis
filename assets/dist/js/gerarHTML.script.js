@@ -78,6 +78,9 @@ window.addEventListener('load', () => {
     document.getElementById('respostaHtml').srcdoc = respostaHtml;
   }
 
+  const altura = window.innerHeight / 1;
+	document.getElementById('respostaHtml').style.height = altura + 'px';
+
   perguntaInput.focus();
   setupSpeechRecognition(); 
 });
@@ -162,6 +165,8 @@ async function enviarPergunta() {
     enviarButton.disabled = false;
     enviarButton.textContent = "Enviar";
     perguntaInput.focus();
+
+    respostaHtmlDiv.scrollIntoView({ behavior: 'smooth' });
   }
 }
 
