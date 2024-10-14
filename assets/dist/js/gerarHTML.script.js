@@ -46,7 +46,6 @@ function setupSpeechRecognition() {
   }
 }
 
-// Inicia ou para o reconhecimento de voz
 function toggleSpeechRecognition() {
   if (!isListening) {
     recognition.start();
@@ -82,6 +81,11 @@ function loadSavedData() {
   let respostaHtml = localStorage.getItem('respostaHtml');
   if (respostaHtml) {
     respostaHtmlDiv.srcdoc = respostaHtml;
+  }
+
+  let respostaHtmlAnterior = localStorage.getItem('respostaHtmlAnterior');
+  if (respostaHtmlAnterior) {
+    desfazerButton.disabled = false;
   }
 }
 
@@ -209,7 +213,6 @@ perguntaInput.addEventListener('keydown', (event) => {
   }
 });
 
-// Adiciona eventos de clique aos botões
 enviarButton.addEventListener('click', enviarPergunta);
 
 colarButton.addEventListener('click', () => {
