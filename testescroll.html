@@ -33,41 +33,61 @@
     <div class="controls text-center mt-3 mb-3">
 		<textarea id="userText" class="form-control mb-3" placeholder="Digite seu texto aqui..."></textarea>
         <br><br>
-        <label for="speed">Velocidade do Autoscroll: <span id="speedValue">10</span></label>
+        <label for="speed">Velocidade: <span id="speedValue">10</span></label>
         <input type="range" class="form-control-range w-50 mx-auto mb-3" id="speed" name="speed" min="1" max="100" value="10" oninput="adjustSpeed(this.value)">
         <br><br>
-        <button class="btn btn-primary" onclick="startAutoscroll()">Iniciar Autoscroll</button>
-        <button class="btn btn-danger" onclick="stopAutoscroll()">Parar Autoscroll</button>
+        <button class="btn btn-primary" onclick="startAutoscroll()">Iniciar</button>
+        <button id="pauseButton" class="btn btn-danger" onclick="pauseAutoscroll()">Pausar</button>
         <button class="btn btn-secondary" onclick="toggleDarkMode()">Modo Escuro</button>
     </div>
 
     <script>
         let scrollInterval;
-        let speed = 100; // Intervalo inicial para a velocidade
+        let speed = 100;
+        let isPaused = false;
 
         function startAutoscroll() {
             if (scrollInterval) clearInterval(scrollInterval);
             const userText = document.getElementById('userText').value;
             const outputDiv = document.getElementById('output');
             outputDiv.innerHTML = `<p>${userText.replace(/\n/g, '<br>')}</p>`;
-            outputDiv.scrollTop = 0; // Reinicia a rolagem
+            outputDiv.scrollTop = 0;
             scrollInterval = setInterval(autoscroll, speed);
+            isPaused = false;
+            document.getElementById('pauseButton').textContent = 'Pausar';
+            document.getElementById('pauseButton').classList.remove('btn-success');
+            document.getElementById('pauseButton').classList.add('btn-danger');
         }
 
         function autoscroll() {
-            const outputDiv = document.getElementById('output');
-            outputDiv.scrollBy({ top: 1, behavior: 'smooth' });
-            if (outputDiv.scrollHeight - outputDiv.scrollTop <= outputDiv.clientHeight + 1) { // Adiciona um buffer para parar no final
-                clearInterval(scrollInterval); // Para o autoscroll ao chegar no final
+            if (!isPaused) {
+                const outputDiv = document.getElementById('output');
+                outputDiv.scrollBy({ top: 1, behavior: 'smooth' });
+                if (outputDiv.scrollHeight - outputDiv.scrollTop <= outputDiv.clientHeight + 1) { 
+                    clearInterval(scrollInterval); 
+                }
             }
         }
 
-        function stopAutoscroll() {
-            if (scrollInterval) clearInterval(scrollInterval);
+        function pauseAutoscroll() {
+            if (scrollInterval) {
+                isPaused = !isPaused;
+                if (isPaused) {
+                    clearInterval(scrollInterval);
+                    document.getElementById('pauseButton').textContent = 'Continue';
+                    document.getElementById('pauseButton').classList.remove('btn-danger');
+                    document.getElementById('pauseButton').classList.add('btn-success');
+                } else {
+                    scrollInterval = setInterval(autoscroll, speed);
+                    document.getElementById('pauseButton').textContent = 'Pausar';
+                    document.getElementById('pauseButton').classList.remove('btn-success');
+                    document.getElementById('pauseButton').classList.add('btn-danger');
+                }
+            }
         }
 
         function adjustSpeed(newSpeed) {
-            speed = 200 - newSpeed * 2; // Ajusta a escala para controle da velocidade
+            speed = 200 - newSpeed * 2;
             document.getElementById('speedValue').textContent = newSpeed;
             if (scrollInterval) {
                 clearInterval(scrollInterval);
