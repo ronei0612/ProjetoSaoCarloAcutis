@@ -3,13 +3,13 @@ const perguntaInput = document.getElementById('pergunta');
 const apiTokenInput = document.getElementById('apiToken');
 const respostaDiv = document.getElementById('resposta');
 const microfoneButton = document.getElementById('microfone');
-const modoEscuroButton = document.getElementById('modoEscuro');
+const modoEscuroButtonModal = document.getElementById('modoEscuroButtonModal');
 const limparButton = document.getElementById('limpar');
 const complementoInput = document.getElementById('complemento');
+const salvarConfiguracoesButton = document.getElementById('salvarConfiguracoes');
 
 let recognition = null;
 let isListening = false;
-//let finalTranscript = '';//Usando para limpar a caixa de texto
 let listeningTimer = null;
 
 function setupSpeechRecognition() {
@@ -28,7 +28,6 @@ function setupSpeechRecognition() {
       }
       perguntaInput.value += finalTranscript;
 
-      // Reiniciando a escuta após um período de inatividade
       clearTimeout(listeningTimer);
       listeningTimer = setTimeout(() => {
         recognition.stop();
@@ -37,7 +36,7 @@ function setupSpeechRecognition() {
             recognition.start();
           }
         }, 500);
-      }, 5000); // Aguarda 5 segundos de inatividade
+      }, 5000); 
     };
 
     microfoneButton.addEventListener('click', () => {
@@ -71,18 +70,28 @@ window.addEventListener('load', () => {
     complementoInput.value = complemento;
   }
 
-  let modoEscuroLocalStorage = localStorage.getItem('modoEscuro');
+  const modoEscuroLocalStorage = localStorage.getItem('modoEscuro');
   if (modoEscuroLocalStorage === 'true') {
     ativarModoEscuro();
   }
 
   perguntaInput.focus();
-  setupSpeechRecognition(); // Inicializa o reconhecimento de voz
+  setupSpeechRecognition(); 
+
+  modoEscuroButtonModal.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    modoEscuroButtonModal.innerHTML = document.body.classList.contains('dark-mode') ?
+      `<i class="bi bi-moon"></i>` : `<i class="bi bi-brightness-high"></i>`;
+
+    $('#modalConfiguracoes .modal-content').toggleClass('dark-mode');
+  });
 });
 
 function ativarModoEscuro() {
   document.body.classList.add('dark-mode');
-  modoEscuroButton.innerHTML = `<i class="bi bi-moon"></i>`;
+  modoEscuroButtonModal.innerHTML = `<i class="bi bi-moon"></i>`;
+
+  $('#modalConfiguracoes .modal-content').addClass('dark-mode');
 }
 
 async function enviarPergunta() {
@@ -132,11 +141,6 @@ async function enviarPergunta() {
     const data = await response.json();
     exibirResposta(pergunta, data.candidates[0].content.parts[0].text);
 
-    // console.log("Limites de uso:");
-    // console.log("Total de tokens:", data.usageMetadata.totalTokenCount);
-    // console.log("Tokens do prompt:", data.usageMetadata.promptTokenCount);
-    // console.log("Tokens das respostas:", data.usageMetadata.candidatesTokenCount);
-
   } catch (error) {
     console.error(error);
     mostrarErro('Ocorreu um erro ao processar a sua requisição.');
@@ -147,13 +151,13 @@ async function enviarPergunta() {
   }
 }
 
-function exibirResposta(pergunta, resposta) {
-//   respostaDiv.innerHTML = `
-// <p><strong>Sua pergunta:</strong> ${pergunta}</p>
-// <p><strong>Resposta:</strong> ${resposta}</p>
-// `;
+// function exibirResposta(pergunta, resposta) {  
+//   respostaDiv.textContent = `Resposta: ${resposta}`;
+// }
 
-  respostaDiv.innerHTML = `<p><strong>Resposta:</strong> ${resposta}</p>`;
+function exibirResposta(pergunta, resposta) {
+  const html = marked.parse(resposta);
+  respostaDiv.innerHTML = html;
 }
 
 function mostrarErro(mensagem) {
@@ -161,13 +165,15 @@ function mostrarErro(mensagem) {
   perguntaInput.focus();
 }
 
-modoEscuroButton.addEventListener('click', () => {
-  document.body.classList.toggle('dark-mode');
-  const modoEscuroAtivo = document.body.classList.contains('dark-mode');
-  localStorage.setItem('modoEscuro', modoEscuroAtivo.toString());
+function salvarConfiguracoes() {
+  const apiToken = apiTokenInput.value;
+  const complemento = complementoInput.value;
 
-  modoEscuroButton.innerHTML = modoEscuroAtivo ? `<i class="bi bi-moon"></i>` : `<i class="bi bi-brightness-high"></i>`;
-});
+  localStorage.setItem('apiToken', apiToken);
+  localStorage.setItem('complemento', complemento);
+
+  $('#modalConfiguracoes').modal('hide');
+}
 
 limparButton.addEventListener('click', () => {
   perguntaInput.value = '';
@@ -188,3 +194,4 @@ perguntaInput.addEventListener('keydown', (event) => {
 });
 
 enviarButton.addEventListener('click', enviarPergunta);
+salvarConfiguracoesButton.addEventListener('click', salvarConfiguracoes);
