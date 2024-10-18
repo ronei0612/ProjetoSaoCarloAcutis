@@ -151,8 +151,13 @@ async function enviarPergunta() {
   }
 }
 
+// function exibirResposta(pergunta, resposta) {  
+//   respostaDiv.textContent = `Resposta: ${resposta}`;
+// }
+
 function exibirResposta(pergunta, resposta) {
-  respostaDiv.innerHTML = `<p><strong>Resposta:</strong> ${resposta}</p>`;
+  const html = marked.parse(resposta);
+  respostaDiv.innerHTML = html;
 }
 
 function mostrarErro(mensagem) {
