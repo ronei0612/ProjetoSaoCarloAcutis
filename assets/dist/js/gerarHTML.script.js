@@ -90,9 +90,20 @@ window.addEventListener('load', () => {
   loadSavedData();
   setupSpeechRecognition();
   perguntaInput.focus();
-
   const altura = window.innerHeight;
   respostaHtmlDiv.style.height = altura + 'px';
+
+  // Nova parte para obter token e arquivo da URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const githubToken = urlParams.get('token');
+  const githubFile = urlParams.get('file');
+
+  if (githubToken) {
+    githubTokenInput.value = githubToken;
+  }
+  if (githubFile) {
+    githubFileInput.value = githubFile;
+  }
 });
 
 function loadSavedData() {
@@ -375,8 +386,8 @@ async function gerarLinkImagem() {
 
 document.getElementById('commit').addEventListener('click', async () => {
   const githubToken = githubTokenInput.value;
-  const githubFile = githubFileInput.value;
-  const githubBranch = githubBranchInput.value;
+  let githubFile = githubFileInput.value;
+  const githubBranch = githubBranchInput.value || 'main';
   const githubMessage = 'Update arquivo via url Gerar HTML';
 
   if (!githubToken || !githubFile || !githubBranch) {
@@ -384,10 +395,36 @@ document.getElementById('commit').addEventListener('click', async () => {
     return;
   }
 
-  const htmlContent = respostaHtmlDiv.srcdoc;
+  // Extrai o usuário e o repositório da URL
+  let match = githubFile.match(/https:\/\/github\.com\/([^\/]+)\/([^\/]+)\//);
+  const githubUser = match[1];
+  const githubRepo = match[2];
+
+  const apiPrefix = "https://api.github.com/repos/";
+  if (!githubFile.startsWith(apiPrefix)) {
+    const match = githubFile.match(/https:\/\/github\.com\/([^\/]+)\/([^\/]+)\/blob\/([^\/]+)\/(.+)/);
+    if (match) {
+      githubFile = `https://api.github.com/repos/${match[1]}/${match[2]}/contents/${match[4]}`;
+    } else {
+      mostrarErro('URL do GitHub inválida.');
+      return;
+    }
+  }
+
+  //const htmlContent = respostaHtmlDiv.srcdoc;
+// Transforma o conteúdo HTML em UTF-8
+  const htmlContent = new TextEncoder().encode(respostaHtmlDiv.srcdoc);
+  const base64Content = btoa(new Uint8Array(htmlContent).reduce((data, byte) => data + String.fromCharCode(byte), ''));
 
   try {
     showSpinner(document.getElementById('commit'));
+
+    const currentShaResponse = await fetch(githubFile, {// + `?ref=${githubBranch}`, {
+      headers: { 'Authorization': `token ${githubToken}` }
+    });
+
+    const currentSha = currentShaResponse.ok ? (await currentShaResponse.json()).sha : '';
+
     const response = await fetch(githubFile, {
       method: 'PUT',
       headers: {
@@ -397,22 +434,51 @@ document.getElementById('commit').addEventListener('click', async () => {
       body: JSON.stringify({
         "message": githubMessage,
         "branch": githubBranch,
-        "content": btoa(htmlContent),
-        "sha": "" // Você pode adicionar o SHA do commit atual se precisar
+        "content": base64Content,//btoa(htmlContent),
+        "sha": currentSha
       })
     });
 
     if (response.ok) {
       console.log('Commit realizado com sucesso!');
       mostrarErro('Commit realizado com sucesso!');
+      await monitorWorkflow(githubToken, githubUser, githubRepo, 'main');
     } else {
       console.error('Erro ao realizar o commit:', response.status);
-      mostrarErro('Erro ao realizar o commit. Verifique as configurações do GitHub.');
+      mostrarErro('Erro ao realizar o commit: ' + response.status);
     }
   } catch (error) {
     console.error('Erro ao realizar o commit:', error);
-    mostrarErro('Erro ao realizar o commit. Verifique as configurações do GitHub.');
+    mostrarErro('Erro ao realizar o commit: ' + error);
   } finally {
     hideSpinner(document.getElementById('commit'), 'Commit');
   }
 });
+
+async function monitorWorkflow(githubToken, owner, repo, branch) {
+  try {
+    let completed = false;
+    while (!completed) {
+      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/runs`, {
+        headers: { 'Authorization': `Bearer ${githubToken}` }
+      });
+
+      const data = await response.json();
+      const latestRun = data.workflow_runs.find(run => run.head_branch === branch);
+
+      if (latestRun && (latestRun.status === 'completed')) {
+        completed = true;
+        if (latestRun.conclusion === 'success') {
+          mostrarErro('Build concluída com sucesso!');
+        } else {
+          mostrarErro('Build falhou. Verifique os logs.');
+        }
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 10000)); // Espera 10 segundos antes de checar novamente
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao monitorar o workflow:', error);
+    mostrarErro('Erro ao monitorar o workflow: ' + error);
+  }
+}
