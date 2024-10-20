@@ -385,9 +385,15 @@ document.getElementById('commit').addEventListener('click', async () => {
   }
 
   const htmlContent = respostaHtmlDiv.srcdoc;
-
   try {
     showSpinner(document.getElementById('commit'));
+
+    const currentShaResponse = await fetch(githubFile, {// + `?ref=${githubBranch}`, {
+       headers: { 'Authorization': `token ${githubToken}` }
+    });
+
+    const currentSha = currentShaResponse.ok ? (await currentShaResponse.json()).sha : '';
+
     const response = await fetch(githubFile, {
       method: 'PUT',
       headers: {
@@ -398,7 +404,7 @@ document.getElementById('commit').addEventListener('click', async () => {
         "message": githubMessage,
         "branch": githubBranch,
         "content": btoa(htmlContent),
-        "sha": "" // Você pode adicionar o SHA do commit atual se precisar
+        "sha": currentSha
       })
     });
 
