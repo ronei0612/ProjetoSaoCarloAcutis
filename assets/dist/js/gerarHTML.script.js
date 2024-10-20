@@ -97,12 +97,16 @@ window.addEventListener('load', () => {
   const urlParams = new URLSearchParams(window.location.search);
   const githubToken = urlParams.get('token');
   const githubFile = urlParams.get('file');
+  const aistudioToken = urlParams.get('aistudiotoken');
 
   if (githubToken) {
     githubTokenInput.value = githubToken;
   }
   if (githubFile) {
     githubFileInput.value = githubFile;
+  }
+  if (aistudioToken) {
+    apiTokenInput.value = aistudioToken;
   }
 });
 
