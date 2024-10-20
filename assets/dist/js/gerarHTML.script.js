@@ -375,7 +375,7 @@ async function gerarLinkImagem() {
 
 document.getElementById('commit').addEventListener('click', async () => {
   const githubToken = githubTokenInput.value;
-  const githubFile = githubFileInput.value;
+  let githubFile = githubFileInput.value;
   const githubBranch = githubBranchInput.value;
   const githubMessage = 'Update arquivo via url Gerar HTML';
 
@@ -384,12 +384,27 @@ document.getElementById('commit').addEventListener('click', async () => {
     return;
   }
 
-  const htmlContent = respostaHtmlDiv.srcdoc;
+  const apiPrefix = "https://api.github.com/repos/";
+  if (!githubFile.startsWith(apiPrefix)) {
+    const match = githubFile.match(/https:\/\/github\.com\/([^\/]+)\/([^\/]+)\/blob\/([^\/]+)\/(.+)/);
+    if (match) {
+      githubFile = `https://api.github.com/repos/${match[1]}/${match[2]}/contents/${match[4]}`;
+    } else {
+      mostrarErro('URL do GitHub inválida.');
+      return;
+    }
+  }
+
+  //const htmlContent = respostaHtmlDiv.srcdoc;
+// Transforma o conteúdo HTML em UTF-8
+  const htmlContent = new TextEncoder().encode(respostaHtmlDiv.srcdoc);
+  const base64Content = btoa(new Uint8Array(htmlContent).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+
   try {
     showSpinner(document.getElementById('commit'));
 
     const currentShaResponse = await fetch(githubFile, {// + `?ref=${githubBranch}`, {
-       headers: { 'Authorization': `token ${githubToken}` }
+      headers: { 'Authorization': `token ${githubToken}` }
     });
 
     const currentSha = currentShaResponse.ok ? (await currentShaResponse.json()).sha : '';
@@ -403,7 +418,7 @@ document.getElementById('commit').addEventListener('click', async () => {
       body: JSON.stringify({
         "message": githubMessage,
         "branch": githubBranch,
-        "content": btoa(htmlContent),
+        "content": base64Content,//btoa(htmlContent),
         "sha": currentSha
       })
     });
@@ -413,11 +428,11 @@ document.getElementById('commit').addEventListener('click', async () => {
       mostrarErro('Commit realizado com sucesso!');
     } else {
       console.error('Erro ao realizar o commit:', response.status);
-      mostrarErro('Erro ao realizar o commit. Verifique as configurações do GitHub.');
+      mostrarErro('Erro ao realizar o commit: ' + response.status);
     }
   } catch (error) {
     console.error('Erro ao realizar o commit:', error);
-    mostrarErro('Erro ao realizar o commit. Verifique as configurações do GitHub.');
+    mostrarErro('Erro ao realizar o commit: ' + error);
   } finally {
     hideSpinner(document.getElementById('commit'), 'Commit');
   }
