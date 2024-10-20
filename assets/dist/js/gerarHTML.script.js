@@ -384,6 +384,11 @@ document.getElementById('commit').addEventListener('click', async () => {
     return;
   }
 
+  // Extrai o usuário e o repositório da URL
+  let match = githubFile.match(/https:\/\/github\.com\/([^\/]+)\/([^\/]+)\//);
+  const githubUser = match[1];
+  const githubRepo = match[2];
+
   const apiPrefix = "https://api.github.com/repos/";
   if (!githubFile.startsWith(apiPrefix)) {
     const match = githubFile.match(/https:\/\/github\.com\/([^\/]+)\/([^\/]+)\/blob\/([^\/]+)\/(.+)/);
@@ -426,6 +431,7 @@ document.getElementById('commit').addEventListener('click', async () => {
     if (response.ok) {
       console.log('Commit realizado com sucesso!');
       mostrarErro('Commit realizado com sucesso!');
+      await monitorWorkflow(githubToken, githubUser, githubRepo, 'main');
     } else {
       console.error('Erro ao realizar o commit:', response.status);
       mostrarErro('Erro ao realizar o commit: ' + response.status);
@@ -437,3 +443,31 @@ document.getElementById('commit').addEventListener('click', async () => {
     hideSpinner(document.getElementById('commit'), 'Commit');
   }
 });
+
+async function monitorWorkflow(githubToken, owner, repo, branch) {
+  try {
+    let completed = false;
+    while (!completed) {
+      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/runs`, {
+        headers: { 'Authorization': `Bearer ${githubToken}` }
+      });
+
+      const data = await response.json();
+      const latestRun = data.workflow_runs.find(run => run.head_branch === branch);
+
+      if (latestRun && (latestRun.status === 'completed')) {
+        completed = true;
+        if (latestRun.conclusion === 'success') {
+          mostrarErro('Build concluída com sucesso!');
+        } else {
+          mostrarErro('Build falhou. Verifique os logs.');
+        }
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 10000)); // Espera 10 segundos antes de checar novamente
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao monitorar o workflow:', error);
+    mostrarErro('Erro ao monitorar o workflow: ' + error);
+  }
+}
