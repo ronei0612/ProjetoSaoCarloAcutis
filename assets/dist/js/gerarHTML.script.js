@@ -90,9 +90,20 @@ window.addEventListener('load', () => {
   loadSavedData();
   setupSpeechRecognition();
   perguntaInput.focus();
-
   const altura = window.innerHeight;
   respostaHtmlDiv.style.height = altura + 'px';
+
+  // Nova parte para obter token e arquivo da URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const githubToken = urlParams.get('token');
+  const githubFile = urlParams.get('file');
+
+  if (githubToken) {
+    githubTokenInput.value = githubToken;
+  }
+  if (githubFile) {
+    githubFileInput.value = githubFile;
+  }
 });
 
 function loadSavedData() {
@@ -376,7 +387,7 @@ async function gerarLinkImagem() {
 document.getElementById('commit').addEventListener('click', async () => {
   const githubToken = githubTokenInput.value;
   let githubFile = githubFileInput.value;
-  const githubBranch = githubBranchInput.value;
+  const githubBranch = githubBranchInput.value || 'main';
   const githubMessage = 'Update arquivo via url Gerar HTML';
 
   if (!githubToken || !githubFile || !githubBranch) {
