@@ -84,6 +84,9 @@ window.addEventListener('load', () => {
       `<i class="bi bi-moon"></i>` : `<i class="bi bi-brightness-high"></i>`;
 
     $('#modalConfiguracoes .modal-content').toggleClass('dark-mode');
+    
+    const modoEscuroAtivo = document.body.classList.contains('dark-mode');
+    localStorage.setItem('modoEscuro', modoEscuroAtivo);
   });
 });
 
