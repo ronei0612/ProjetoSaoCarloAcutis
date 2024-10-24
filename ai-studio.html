@@ -7,6 +7,19 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
   <link rel="stylesheet" href="./assets/dist/css/style.css">
+
+  <style>
+    .image-container {
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .image-preview {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+  </style>
 </head>
 <body>
   <!-- <header class="container mt-0">
@@ -35,6 +48,8 @@
             </div>
           </div>
         </div>
+
+        <div id="imagemPreviewContainer"></div>
 
         <div class="d-flex justify-content-between align-items-center">
           <button id="enviar" class="btn btn-primary btn-block mt-2">Enviar</button>
@@ -82,6 +97,49 @@
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="./assets/dist/js/script.js"></script>
+
+  <script>
+    $(document).ready(function() {
+      $('#pergunta').on('paste', function(e) {
+        const items = (e.originalEvent || e).clipboardData.items;
+        const imagemPreviewContainer = document.getElementById('imagemPreviewContainer');
+
+        if (!imagemPreviewContainer) {
+          console.error("Elemento 'imagemPreviewContainer' não encontrado.");
+          return;
+        }
+
+        imagemPreviewContainer.innerHTML = ""; // Limpa o container antes de adicionar novas imagens
+
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          if (item.kind === 'file' && item.type.startsWith('image/')) {
+            const file = item.getAsFile();
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+              const img = document.createElement('img');
+              img.src = event.target.result;
+              img.alt = `Imagem ${i + 1}`;
+              img.style.maxWidth = '100%';
+              img.style.height = 'auto';
+              img.style.marginBottom = '10px'; // Espaçamento entre imagens
+
+              imagemPreviewContainer.appendChild(img);
+            };
+
+            reader.readAsDataURL(file);
+          }
+        }
+
+        // Lidar com o caso de texto apenas (opcional):
+        const pastedText = e.originalEvent.clipboardData.getData('text/plain');
+        if (pastedText) {
+          this.value += pastedText;
+        }
+      });
+    });
+  </script>
 
 </body>
 </html>
