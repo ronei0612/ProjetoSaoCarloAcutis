@@ -152,6 +152,11 @@ function loadSavedData() {
 }
 
 async function enviarPergunta() {
+  const styleElement = iframeDocument.getElementById('editModeStyles');
+  if (styleElement) {
+    styleElement.remove();
+  }
+
   const pergunta = perguntaInput.value.trim();
   const apiToken = apiTokenInput.value;
 
@@ -486,3 +491,51 @@ async function monitorWorkflow(githubToken, owner, repo, branch) {
     mostrarErro('Erro ao monitorar o workflow: ' + error);
   }
 }
+
+document.getElementById('toggleEditMode').addEventListener('click', () => {
+  const iframe = document.getElementById('respostaHtml');
+  const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+
+  const isEditMode = iframeDocument.querySelector('.edit-mode');
+
+  if (!iframeDocument.querySelector('style#editModeStyles')) {
+    const style = iframeDocument.createElement('style');
+    style.id = 'editModeStyles';
+    style.textContent = `
+      .edit-mode {
+        outline: 2px solid #AAFF00;
+        cursor: text;
+        position: relative;
+      }
+      .edit-mode::before {
+        content: attr(id);
+        position: absolute;
+        top: -1.5em;
+        left: 0;
+        background: #AAFF00;
+        color: black;
+        padding: 2px 4px;
+        font-size: 12px;
+        font-weight: bold;
+        border: 1px solid black;
+      }
+    `;
+    iframeDocument.head.appendChild(style);
+  }
+
+  const elements = iframeDocument.querySelectorAll('[id]');
+  elements.forEach(el => {
+    if (isEditMode) {
+      el.classList.remove('edit-mode');
+    } else {
+      el.classList.add('edit-mode');
+    }
+  });
+
+  if (isEditMode) {
+    const styleElement = iframeDocument.getElementById('editModeStyles');
+    if (styleElement) {
+      styleElement.remove();
+    }
+  }
+});
