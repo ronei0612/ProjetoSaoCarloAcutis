@@ -111,48 +111,130 @@ async function enviarPergunta() {
   }
 
   pergunta = complementoInput.value + ' ' + pergunta;
-  localStorage.setItem('apiToken', apiToken);
-  localStorage.setItem('complemento', complementoInput.value);
   enviarButton.disabled = true;
   enviarButton.textContent = "Carregando...";
 
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiToken}`,
-      {
+  const imagemPreviewContainer = document.getElementById('imagemPreviewContainer');
+  const imageElements = imagemPreviewContainer.querySelectorAll('img');
+
+  if (imageElements.length == 0) {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiToken}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            "contents": [
+              {
+                "parts": [
+                  {
+                    "text": pergunta
+                  }
+                ]
+              }
+            ]
+          })
+        }
+      );
+  
+      const data = await response.json();
+      exibirResposta(pergunta, data.candidates[0].content.parts[0].text);
+  
+    } catch (error) {
+      console.error(error);
+      mostrarErro('Ocorreu um erro ao processar a sua requisição.');
+    } finally {
+      enviarButton.disabled = false;
+      enviarButton.textContent = "Enviar";
+      perguntaInput.focus();
+    }
+  }
+
+  else {
+    const img = imageElements[0];
+    const file = img.src.startsWith("data:image/") ? getDataURLtoFile(img.src) : null;
+
+    if (!file) {
+      mostrarErro('Erro ao processar a imagem.');
+      return;
+    }
+
+    const fileName = 'uploaded_image.png';
+    const urlUpload = `https://generativelanguage.googleapis.com/upload/v1beta/files?uploadType=multipart&key=${apiToken}`;
+    const metadata = { file: { displayName: fileName } };
+
+    const formData = new FormData();
+    formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    formData.append('file', file);
+
+    try {
+      const uploadResponse = await fetch(urlUpload, {
+        method: 'POST',
+        body: formData
+      });
+
+      const uploadData = await uploadResponse.json();
+      const fileUri = uploadData.file.uri;
+      const fileId = uploadData.file.name;
+
+      const mimeType = "image/jpeg";
+      //const model = "models/gemini-1.5-pro-gf-fc";
+      const model = "models/gemini-1.5-flash-latest";
+      const baseUrl = `https://generativelanguage.googleapis.com/v1beta/${model}`;
+      const payload = {
+        contents: [{ parts: [{ text: pergunta }, { fileData: { fileUri, mimeType } }] }]
+      };
+
+      const response = await fetch(`${baseUrl}:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          "contents": [
-            {
-              "parts": [
-                {
-                  "text": pergunta
-                }
-              ]
-            }
-          ]
-        })
-      }
-    );
+        body: JSON.stringify(payload)
+      });
 
-    const data = await response.json();
-    exibirResposta(pergunta, data.candidates[0].content.parts[0].text);
+      const data = await response.json();
+      exibirResposta(pergunta, data.candidates[0].content.parts[0].text);
 
-  } catch (error) {
-    console.error(error);
-    mostrarErro('Ocorreu um erro ao processar a sua requisição.');
-  } finally {
-    enviarButton.disabled = false;
-    enviarButton.textContent = "Enviar";
-    perguntaInput.focus();
+      const urlDelete = `https://generativelanguage.googleapis.com/v1beta/${fileId}?key=${apiKey}`;
+
+      await fetch(urlDelete, {
+        method: 'DELETE'
+      });
+
+    } catch (error) {
+      console.error('Erro ao processar a requisição:', error);
+      alert('Erro ao processar a requisição: ' + error);
+    }
   }
 }
 
-// function exibirResposta(pergunta, resposta) {  
-//   respostaDiv.textContent = `Resposta: ${resposta}`;
+function getDataURLtoFile(dataurl) {
+  const arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+  while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new Blob([u8arr], { type: mime });
+}
+
+// function getDataURLtoFile(dataURL) {
+//   // Remove o 'data:image/jpeg;base64,' do início da string
+//   const base64Image = dataURL.replace(/^data:image\/[a-zA-Z0-9\-\+]+;base64,/, "");
+
+//   const byteString = atob(base64Image);
+//   const arrayBuffer = new ArrayBuffer(byteString.length);
+//   const uint8Array = new Uint8Array(arrayBuffer);
+
+//   for (let i = 0; i < byteString.length; i++) {
+//     uint8Array[i] = byteString.charCodeAt(i);
+//   }
+
+//   const blob = new Blob([uint8Array], { type: 'image/jpeg' }); // Ajusta para o tipo apropriado
+//   return blob;
 // }
 
 function exibirResposta(pergunta, resposta) {
