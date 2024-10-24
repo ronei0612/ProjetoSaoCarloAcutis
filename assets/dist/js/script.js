@@ -188,7 +188,7 @@ async function enviarPergunta() {
         contents: [{ parts: [{ text: pergunta }, { fileData: { fileUri, mimeType } }] }]
       };
 
-      const response = await fetch(`${baseUrl}:generateContent?key=${apiKey}`, {
+      const response = await fetch(`${baseUrl}:generateContent?key=${apiToken}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -199,7 +199,7 @@ async function enviarPergunta() {
       const data = await response.json();
       exibirResposta(pergunta, data.candidates[0].content.parts[0].text);
 
-      const urlDelete = `https://generativelanguage.googleapis.com/v1beta/${fileId}?key=${apiKey}`;
+      const urlDelete = `https://generativelanguage.googleapis.com/v1beta/${fileId}?key=${apiToken}`;
 
       await fetch(urlDelete, {
         method: 'DELETE'
@@ -208,34 +208,38 @@ async function enviarPergunta() {
     } catch (error) {
       console.error('Erro ao processar a requisição:', error);
       alert('Erro ao processar a requisição: ' + error);
+    } finally {
+      enviarButton.disabled = false;
+      enviarButton.textContent = "Enviar";
+      perguntaInput.focus();
     }
   }
 }
 
-function getDataURLtoFile(dataurl) {
-  const arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
-        bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
-  while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-  }
-  return new Blob([u8arr], { type: mime });
-}
-
-// function getDataURLtoFile(dataURL) {
-//   // Remove o 'data:image/jpeg;base64,' do início da string
-//   const base64Image = dataURL.replace(/^data:image\/[a-zA-Z0-9\-\+]+;base64,/, "");
-
-//   const byteString = atob(base64Image);
-//   const arrayBuffer = new ArrayBuffer(byteString.length);
-//   const uint8Array = new Uint8Array(arrayBuffer);
-
-//   for (let i = 0; i < byteString.length; i++) {
-//     uint8Array[i] = byteString.charCodeAt(i);
+// function getDataURLtoFile(dataurl) {
+//   const arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+//         bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+//   while (n--) {
+//       u8arr[n] = bstr.charCodeAt(n);
 //   }
-
-//   const blob = new Blob([uint8Array], { type: 'image/jpeg' }); // Ajusta para o tipo apropriado
-//   return blob;
+//   return new Blob([u8arr], { type: mime });
 // }
+
+function getDataURLtoFile(dataURL) {
+  // Remove o 'data:image/jpeg;base64,' do início da string
+  const base64Image = dataURL.replace(/^data:image\/[a-zA-Z0-9\-\+]+;base64,/, "");
+
+  const byteString = atob(base64Image);
+  const arrayBuffer = new ArrayBuffer(byteString.length);
+  const uint8Array = new Uint8Array(arrayBuffer);
+
+  for (let i = 0; i < byteString.length; i++) {
+    uint8Array[i] = byteString.charCodeAt(i);
+  }
+
+  const blob = new Blob([uint8Array], { type: 'image/jpeg' }); // Ajusta para o tipo apropriado
+  return blob;
+}
 
 function exibirResposta(pergunta, resposta) {
   const html = marked.parse(resposta);
