@@ -152,6 +152,11 @@ function loadSavedData() {
 }
 
 async function enviarPergunta() {
+  const styleElement = iframeDocument.getElementById('editModeStyles');
+  if (styleElement) {
+    styleElement.remove();
+  }
+
   const pergunta = perguntaInput.value.trim();
   const apiToken = apiTokenInput.value;
 
@@ -491,8 +496,11 @@ document.getElementById('toggleEditMode').addEventListener('click', () => {
   const iframe = document.getElementById('respostaHtml');
   const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
 
+  const isEditMode = iframeDocument.querySelector('.edit-mode');
+
   if (!iframeDocument.querySelector('style#editModeStyles')) {
     const style = iframeDocument.createElement('style');
+    style.id = 'editModeStyles';
     style.textContent = `
       .edit-mode {
         outline: 2px solid #AAFF00;
@@ -517,6 +525,17 @@ document.getElementById('toggleEditMode').addEventListener('click', () => {
 
   const elements = iframeDocument.querySelectorAll('[id]');
   elements.forEach(el => {
+    if (isEditMode) {
+      el.classList.remove('edit-mode');
+    } else {
       el.classList.add('edit-mode');
+    }
   });
+
+  if (isEditMode) {
+    const styleElement = iframeDocument.getElementById('editModeStyles');
+    if (styleElement) {
+      styleElement.remove();
+    }
+  }
 });
