@@ -8,6 +8,11 @@ const limparButton = document.getElementById('limpar');
 const complementoInput = document.getElementById('complemento');
 const salvarConfiguracoesButton = document.getElementById('salvarConfiguracoes');
 const imagemPreviewContainer = document.getElementById('imagemPreviewContainer');
+const modelSelect = document.getElementById('modeloAIStudio');
+const baseUrl = 'https://generativelanguage.googleapis.com';
+const version = 'v1beta';
+//const model = "models/gemini-1.5-pro-gf-fc";
+let model = "models/gemini-1.5-flash-latest";
 
 let recognition = null;
 let isListening = false;
@@ -76,6 +81,11 @@ window.addEventListener('load', () => {
     ativarModoEscuro();
   }
 
+  const modelLocalStorage = localStorage.getItem('aiStudio_model');
+  if (modelLocalStorage) {
+    model = modelLocalStorage;
+  }
+
   perguntaInput.focus();
   setupSpeechRecognition(); 
 
@@ -89,6 +99,8 @@ window.addEventListener('load', () => {
     const modoEscuroAtivo = document.body.classList.contains('dark-mode');
     localStorage.setItem('modoEscuro', modoEscuroAtivo);
   });
+
+  modelList();
 });
 
 function ativarModoEscuro() {
@@ -98,8 +110,8 @@ function ativarModoEscuro() {
   $('#modalConfiguracoes .modal-content').addClass('dark-mode');
 }
 
-async function enviarPergunta() {
-  let pergunta = perguntaInput.value;
+async function enviarPergunta(perguntaElem) {
+  let pergunta = perguntaElem.value;
   const apiToken = apiTokenInput.value;
 
   if (!apiToken) {
@@ -108,7 +120,7 @@ async function enviarPergunta() {
   }
 
   if (pergunta.trim() === '' && imagemPreviewContainer.querySelectorAll('img').length === 0) {
-    perguntaInput.focus();
+    perguntaElem.focus();
     return;
   }
 
@@ -126,7 +138,7 @@ async function enviarPergunta() {
   } finally {
     enviarButton.disabled = false;
     enviarButton.textContent = "Enviar";
-    perguntaInput.focus();
+    perguntaElem.focus();
   }
 }
 
@@ -139,7 +151,7 @@ async function processarPerguntaEImagem(pergunta, apiToken) {
     }
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiToken}`,
+      `${baseUrl}/${version}/${model}:generateContent?key=${apiToken}`,
       {
         method: 'POST',
         headers: {
@@ -160,6 +172,9 @@ async function processarPerguntaEImagem(pergunta, apiToken) {
     );
 
     const data = await response.json();
+    if (data.error)
+      return data.error.message;
+
     return data.candidates[0].content.parts[0].text;
   }
 
@@ -172,7 +187,7 @@ async function processarPerguntaEImagem(pergunta, apiToken) {
   }
 
   const fileName = 'uploaded_image.png';
-  const urlUpload = `https://generativelanguage.googleapis.com/upload/v1beta/files?uploadType=multipart&key=${apiToken}`;
+  const urlUpload = `${baseUrl}/upload/${version}/files?uploadType=multipart&key=${apiToken}`;
   const metadata = { file: { displayName: fileName } };
 
   const formData = new FormData();
@@ -189,14 +204,11 @@ async function processarPerguntaEImagem(pergunta, apiToken) {
   const fileId = uploadData.file.name;
 
   const mimeType = "image/jpeg";
-  //const model = "models/gemini-1.5-pro-gf-fc";
-  const model = "models/gemini-1.5-flash-latest";
-  const baseUrl = `https://generativelanguage.googleapis.com/v1beta/${model}`;
   const payload = {
     contents: [{ parts: [{ text: pergunta }, { fileData: { fileUri, mimeType } }] }]
   };
 
-  const response = await fetch(`${baseUrl}:generateContent?key=${apiToken}`, {
+  const response = await fetch(`${baseUrl}/${version}/${model}:generateContent?key=${apiToken}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -205,7 +217,7 @@ async function processarPerguntaEImagem(pergunta, apiToken) {
   });
 
   const data = await response.json();
-  await fetch(`https://generativelanguage.googleapis.com/v1beta/${fileId}?key=${apiToken}`, {
+  await fetch(`${baseUrl}/${version}/${fileId}?key=${apiToken}`, {
     method: 'DELETE'
   });
   return data.candidates[0].content.parts[0].text;
@@ -242,6 +254,7 @@ function salvarConfiguracoes() {
 
   localStorage.setItem('aiStudio_apiToken', apiToken);
   localStorage.setItem('aiStudio_complemento', complemento);
+  localStorage.setItem('aiStudio_model', model);
 
   $('#modalConfiguracoes').modal('hide');
 }
@@ -254,7 +267,7 @@ limparButton.addEventListener('click', () => {
 perguntaInput.addEventListener('keydown', (event) => {
   if (event.ctrlKey && event.key === 'Enter') {
     event.preventDefault();
-    enviarPergunta();
+    enviarPergunta(perguntaInput);
   } else if (event.ctrlKey && event.key === 'm') {
     event.preventDefault();
     microfoneButton.click();
@@ -299,5 +312,54 @@ perguntaInput.addEventListener('paste', (e) => {
   }
 });
 
-enviarButton.addEventListener('click', enviarPergunta);
+async function modelList() {
+  const apiKey = document.getElementById('apiToken').value.trim();
+
+  if (!apiKey) {
+    console.error('API token não fornecido.');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${baseUrl}/${version}/models?key=${apiKey}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+
+    if (data.models && data.models.length > 0) {
+      modelSelect.innerHTML = '';
+      data.models.forEach(model => {
+        const option = document.createElement('option');
+        option.value = model.name;
+        option.textContent = model.displayName;
+        option.dataset.description = model.description;
+        modelSelect.appendChild(option);
+      });
+      modelSelect.value = model;
+    } else {
+      console.log('Nenhum modelo encontrado.');
+    }
+
+  } catch (error) {
+    console.error('Erro ao buscar a lista de modelos:', error);
+  }
+}
+
+modelSelect.addEventListener('change', async function() {
+  const selectedOption = modelSelect.options[modelSelect.selectedIndex];
+  if (selectedOption.dataset.description) {
+    const resposta = await processarPerguntaEImagem('Traduza para pt-br: ' + selectedOption.dataset.description, apiTokenInput.value);
+    alert(resposta);
+  }
+  model = modelSelect.value;
+});
+
+enviarButton.addEventListener('click', function() {
+  enviarPergunta(perguntaInput);
+});
+
 salvarConfiguracoesButton.addEventListener('click', salvarConfiguracoes);
