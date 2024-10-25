@@ -1,11 +1,11 @@
 const enviarButton = document.getElementById('enviar');
 const perguntaInput = document.getElementById('pergunta');
-const apiTokenInput = document.getElementById('apiToken');
+const apiTokenInput = document.getElementById('aiStudio_apiToken');
 const respostaDiv = document.getElementById('resposta');
 const microfoneButton = document.getElementById('microfone');
 const modoEscuroButtonModal = document.getElementById('modoEscuroButtonModal');
 const limparButton = document.getElementById('limpar');
-const complementoInput = document.getElementById('complemento');
+const complementoInput = document.getElementById('aiStudio_complemento');
 const salvarConfiguracoesButton = document.getElementById('salvarConfiguracoes');
 
 let recognition = null;
@@ -60,12 +60,12 @@ function toggleSpeechRecognition() {
 }
 
 window.addEventListener('load', () => {
-  let savedToken = localStorage.getItem('apiToken');
+  let savedToken = localStorage.getItem('aiStudio_apiToken');
   if (savedToken) {
     apiTokenInput.value = savedToken;
   }
 
-  let complemento = localStorage.getItem('complemento');
+  let complemento = localStorage.getItem('aiStudio_complemento');
   if (complemento) {
     complementoInput.value = complemento;
   }
@@ -229,7 +229,6 @@ async function enviarPergunta() {
 // }
 
 function getDataURLtoFile(dataURL) {
-  // Remove o 'data:image/jpeg;base64,' do início da string
   const base64Image = dataURL.replace(/^data:image\/[a-zA-Z0-9\-\+]+;base64,/, "");
 
   const byteString = atob(base64Image);
@@ -240,7 +239,7 @@ function getDataURLtoFile(dataURL) {
     uint8Array[i] = byteString.charCodeAt(i);
   }
 
-  const blob = new Blob([uint8Array], { type: 'image/jpeg' }); // Ajusta para o tipo apropriado
+  const blob = new Blob([uint8Array], { type: 'image/jpeg' });
   return blob;
 }
 
@@ -258,8 +257,8 @@ function salvarConfiguracoes() {
   const apiToken = apiTokenInput.value;
   const complemento = complementoInput.value;
 
-  localStorage.setItem('apiToken', apiToken);
-  localStorage.setItem('complemento', complemento);
+  localStorage.setItem('aiStudio_apiToken', apiToken);
+  localStorage.setItem('aiStudio_complemento', complemento);
 
   $('#modalConfiguracoes').modal('hide');
 }
