@@ -211,15 +211,6 @@ async function processarPerguntaEImagem(pergunta, apiToken) {
   return data.candidates[0].content.parts[0].text;
 }
 
-// function getDataURLtoFile(dataurl) {
-//   const arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
-//         bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
-//   while (n--) {
-//       u8arr[n] = bstr.charCodeAt(n);
-//   }
-//   return new Blob([u8arr], { type: mime });
-// }
-
 function getDataURLtoFile(dataURL) {
   const base64Image = dataURL.replace(/^data:image\/[a-zA-Z0-9\-\+]+;base64,/, "");
 
@@ -270,6 +261,41 @@ perguntaInput.addEventListener('keydown', (event) => {
   } else if (event.ctrlKey && event.key === 'd') {
     event.preventDefault();
     limparButton.click();
+  }
+});
+
+perguntaInput.addEventListener('paste', (e) => {
+  const items = (e.originalEvent || e).clipboardData.items;
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (item.kind === 'file' && item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      const reader = new FileReader();
+
+      reader.onload = function(event) {
+        const img = document.createElement('img');
+        img.src = event.target.result;
+        img.alt = `Imagem ${i + 1}`;
+        img.classList.add('image-preview');
+
+        const closeButton = document.createElement('span');
+        closeButton.classList.add('close-image');
+        closeButton.innerHTML = '×';
+        closeButton.addEventListener('click', () => {
+          img.remove();
+          perguntaInput.focus();
+        });
+
+        imagemPreviewContainer.innerHTML = "";
+        imagemPreviewContainer.appendChild(img);
+
+        img.parentNode.appendChild(closeButton);
+        imagemPreviewContainer.appendChild(img);
+      };
+
+      reader.readAsDataURL(file);
+    }
   }
 });
 

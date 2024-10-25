@@ -37,3 +37,27 @@ body.dark-mode {
   background-color: #343a40;
   color: #fff;
 }
+
+.image-container {
+  overflow: hidden;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.image-preview {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  cursor: pointer;
+}
+
+.close-image {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 5px 8px;
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
