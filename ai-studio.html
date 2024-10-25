@@ -138,7 +138,10 @@
             const closeButton = document.createElement('span');
             closeButton.classList.add('close-image');
             closeButton.innerHTML = '×';
-            closeButton.addEventListener('click', () => img.remove()); 
+            closeButton.addEventListener('click', () => {
+              img.remove();
+              perguntaInput.focus();
+            });
 
             imagemPreviewContainer.innerHTML = "";
             imagemPreviewContainer.appendChild(img);
