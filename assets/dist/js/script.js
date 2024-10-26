@@ -133,7 +133,7 @@ async function enviarPergunta(perguntaElem) {
   enviarButton.textContent = "Carregando...";
 
   try {
-    const resposta = await processarPerguntaEImagem(pergunta, apiToken);
+    const resposta = await processarPergunta(pergunta, apiToken);
     exibirResposta(pergunta, resposta);
   } catch (error) {
     console.error('Erro ao processar a requisição:', error);
@@ -145,43 +145,46 @@ async function enviarPergunta(perguntaElem) {
   }
 }
 
-async function processarPerguntaEImagem(pergunta, apiToken) {
-  const imageElements = imagemPreviewContainer.querySelectorAll('img');
+async function enviarArquivo(pergunta, apiToken, file) {
+  const fileName = 'uploaded_file.txt';
+  const urlUpload = `${baseUrl}/upload/${version}/files?uploadType=multipart&key=${apiToken}`;
+  const metadata = { file: { displayName: fileName } };
 
-  if (imageElements.length === 0) {
-    if (pergunta.trim() === '') {
-      return;
-    }
+  const formData = new FormData();
+  formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+  formData.append('file', file);
 
-    const response = await fetch(
-      `${baseUrl}/${version}/${model}:generateContent?key=${apiToken}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          "contents": [
-            {
-              "parts": [
-                {
-                  "text": pergunta
-                }
-              ]
-            }
-          ]
-        })
-      }
-    );
+  const uploadResponse = await fetch(urlUpload, {
+    method: 'POST',
+    body: formData
+  });
 
-    const data = await response.json();
-    if (data.error)
-      return data.error.message;
+  const uploadData = await uploadResponse.json();
+  const fileUri = uploadData.file.uri;
 
-    return data.candidates[0].content.parts[0].text;
-  }
+  const mimeType = "text/plain";
+  const payload = {
+    contents: [{ parts: [{ text: pergunta }, { fileData: { fileUri, mimeType } }] }]
+  };
 
-  const img = imageElements[0];
+  const response = await fetch(`${baseUrl}/${version}/${model}:generateContent?key=${apiToken}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await response.json();
+
+  await fetch(`${baseUrl}/${version}/${uploadData.file.name}?key=${apiToken}`, {
+    method: 'DELETE'
+  });
+
+  return data.candidates[0].content.parts[0].text;
+}
+
+async function enviarImagem(pergunta, apiToken, img) {
   const file = img.src.startsWith("data:image/") ? getDataURLtoFile(img.src) : null;
 
   if (!file) {
@@ -204,7 +207,6 @@ async function processarPerguntaEImagem(pergunta, apiToken) {
 
   const uploadData = await uploadResponse.json();
   const fileUri = uploadData.file.uri;
-  const fileId = uploadData.file.name;
 
   const mimeType = "image/jpeg";
   const payload = {
@@ -220,9 +222,53 @@ async function processarPerguntaEImagem(pergunta, apiToken) {
   });
 
   const data = await response.json();
-  await fetch(`${baseUrl}/${version}/${fileId}?key=${apiToken}`, {
+
+  await fetch(`${baseUrl}/${version}/${uploadData.file.name}?key=${apiToken}`, {
     method: 'DELETE'
   });
+
+  return data.candidates[0].content.parts[0].text;
+}
+
+async function processarPergunta(pergunta, apiToken) {
+  if (fileSelector.files.length > 0) {
+    return await enviarArquivo(pergunta, apiToken, fileSelector.files[0]);
+  }
+
+  const imageElements = imagemPreviewContainer.querySelectorAll('img');
+  if (imageElements.length > 0) {
+    return await enviarImagem(pergunta, apiToken, imageElements[0]);
+  }
+
+  return await enviarTexto(pergunta, apiToken);
+}
+
+async function enviarTexto(pergunta, apiToken) {
+  const response = await fetch(
+    `${baseUrl}/${version}/${model}:generateContent?key=${apiToken}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        "contents": [
+          {
+            "parts": [
+              {
+                "text": pergunta
+              }
+            ]
+          }
+        ]
+      })
+    }
+  );
+
+  const data = await response.json();
+  if (data.error)
+    return data.error.message;
+
   return data.candidates[0].content.parts[0].text;
 }
 
@@ -355,7 +401,7 @@ async function modelList() {
 modelSelect.addEventListener('change', async function() {
   const selectedOption = modelSelect.options[modelSelect.selectedIndex];
   if (selectedOption.dataset.description) {
-    const resposta = await processarPerguntaEImagem('Traduza para pt-br: ' + selectedOption.dataset.description, apiTokenInput.value);
+    const resposta = await enviarTexto('Traduza para pt-br: ' + selectedOption.dataset.description, apiTokenInput.value);
     alert(resposta);
   }
   model = modelSelect.value;
