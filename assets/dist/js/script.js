@@ -146,7 +146,7 @@ async function enviarPergunta(perguntaElem) {
 }
 
 async function enviarArquivo(pergunta, apiToken, file) {
-  const fileName = 'uploaded_file.txt';
+  const fileName = file.name;
   const urlUpload = `${baseUrl}/upload/${version}/files?uploadType=multipart&key=${apiToken}`;
   const metadata = { file: { displayName: fileName } };
 
