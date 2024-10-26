@@ -147,7 +147,7 @@ async function enviarPergunta(perguntaElem) {
   }
 }
 
-async function enviarArquivo(pergunta, apiToken, file) {
+async function enviarArquivo(apiToken, file) {
   const fileName = file.name;
   const urlUpload = `${baseUrl}/upload/${version}/files?uploadType=multipart&key=${apiToken}`;
   const metadata = { file: { displayName: fileName } };
@@ -165,28 +165,29 @@ async function enviarArquivo(pergunta, apiToken, file) {
   const fileUri = uploadData.file.uri;
 
   const mimeType = "text/plain";
-  const payload = {
-    contents: [{ parts: [{ text: pergunta }, { fileData: { fileUri, mimeType } }] }]
-  };
+  return { fileData: { fileUri, mimeType } };
+}
 
-  const response = await fetch(`${baseUrl}/${version}/${model}:generateContent?key=${apiToken}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(payload)
-  });
+async function enviarPayload(payload, apiToken) {
+  const response = await fetch(
+    `${baseUrl}/${version}/${model}:generateContent?key=${apiToken}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    }
+  );
 
   const data = await response.json();
-
-  await fetch(`${baseUrl}/${version}/${uploadData.file.name}?key=${apiToken}`, {
-    method: 'DELETE'
-  });
+  if (data.error)
+    return data.error.message;
 
   return data.candidates[0].content.parts[0].text;
 }
 
-async function enviarImagem(pergunta, apiToken, img) {
+async function enviarImagem(apiToken, img) {
   const file = img.src.startsWith("data:image/") ? getDataURLtoFile(img.src) : null;
 
   if (!file) {
@@ -211,38 +212,34 @@ async function enviarImagem(pergunta, apiToken, img) {
   const fileUri = uploadData.file.uri;
 
   const mimeType = "image/jpeg";
-  const payload = {
-    contents: [{ parts: [{ text: pergunta }, { fileData: { fileUri, mimeType } }] }]
-  };
-
-  const response = await fetch(`${baseUrl}/${version}/${model}:generateContent?key=${apiToken}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(payload)
-  });
-
-  const data = await response.json();
-
-  await fetch(`${baseUrl}/${version}/${uploadData.file.name}?key=${apiToken}`, {
-    method: 'DELETE'
-  });
-
-  return data.candidates[0].content.parts[0].text;
+  return { fileData: { fileUri, mimeType } };
 }
 
 async function processarPergunta(pergunta, apiToken) {
-  if (fileSelector.files.length > 0) {
-    return await enviarArquivo(pergunta, apiToken, fileSelector.files[0]);
+  const file = fileSelector.files[0];
+  const img = imagemPreviewContainer.querySelector('img');
+
+  let payload = {
+    "contents": [
+      {
+        "parts": [
+          {
+            "text": pergunta
+          }
+        ]
+      }
+    ]
+  };
+
+  if (file) {
+    payload.contents[0].parts.push(await enviarArquivo(apiToken, file));
   }
 
-  const imageElements = imagemPreviewContainer.querySelectorAll('img');
-  if (imageElements.length > 0) {
-    return await enviarImagem(pergunta, apiToken, imageElements[0]);
+  if (img) {
+    payload.contents[0].parts.push(await enviarImagem(apiToken, img));
   }
 
-  return await enviarTexto(pergunta, apiToken);
+  return await enviarPayload(payload, apiToken);
 }
 
 async function enviarTexto(pergunta, apiToken) {
