@@ -368,12 +368,14 @@ enviarButton.addEventListener('click', function() {
 fileSelector.addEventListener('change', function() {
   fileInfo.innerText = this.files[0].name;
   removeFile.style.display = '';
+  perguntaInput.focus();
 });
 
 removeFile.addEventListener('click', function() {
   this.style.display = 'none';
   fileInfo.innerText = '';
   fileSelector.value = '';
+  perguntaInput.focus();
 })
 
 salvarConfiguracoesButton.addEventListener('click', salvarConfiguracoes);
