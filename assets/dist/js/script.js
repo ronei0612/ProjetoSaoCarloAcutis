@@ -122,7 +122,9 @@ async function enviarPergunta(perguntaElem) {
     return;
   }
 
-  if (pergunta.trim() === '' && imagemPreviewContainer.querySelectorAll('img').length === 0) {
+  if (pergunta.trim() === '' && 
+      imagemPreviewContainer.querySelectorAll('img').length === 0 && 
+      fileSelector.files.length === 0) {
     perguntaElem.focus();
     return;
   }
