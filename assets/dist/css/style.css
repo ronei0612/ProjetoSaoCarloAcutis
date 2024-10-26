@@ -55,8 +55,8 @@ body.dark-mode {
   position: absolute;
   top: 0px;
   right: 0px;
-  background-color: rgba(0, 0, 0, 0.5);
-  color: white;
+  /* background-color: rgba(0, 0, 0, 0.5);
+  color: white; */
   padding: 5px 8px;
   border-radius: 0.25rem;
   cursor: pointer;

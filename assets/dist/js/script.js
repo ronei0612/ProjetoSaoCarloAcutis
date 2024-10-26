@@ -296,7 +296,7 @@ perguntaInput.addEventListener('paste', (e) => {
         img.classList.add('image-preview');
 
         const closeButton = document.createElement('span');
-        closeButton.classList.add('close-image');
+        closeButton.classList.add('close-image', 'btn', 'btn-dark', 'btn-sm');
         closeButton.innerHTML = '×';
         closeButton.addEventListener('click', () => {
           img.remove();
@@ -375,6 +375,5 @@ removeFile.addEventListener('click', function() {
   fileInfo.innerText = '';
   fileSelector.value = '';
 })
-//fileInfo.innerText = this.files[0].name;removeFile.style.display = ''
 
 salvarConfiguracoesButton.addEventListener('click', salvarConfiguracoes);
