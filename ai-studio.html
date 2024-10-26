@@ -32,11 +32,12 @@
           <button id="configurar" class="btn btn-secondary mr-1" data-toggle="modal" data-target="#modalConfiguracoes">
             <i class="bi bi-gear"></i>
           </button>
-          <button id="uploadArquivo" class="btn btn-secondary">
+          <label class="btn btn-secondary mb-0 d-flex align-items-center">
             <i class="bi bi-plus"></i>
-          </button>
-          <input type="file" id="inputArquivo" style="display: none;" />
+            <input id="my-file-selector" type="file" onchange="document.getElementById('fileInfo').innerText = this.files[0].name;" hidden>
+          </label>
         </div>
+        <span class='label label-info' id="fileInfo"></span>        
       </div>
     </div>
   </main>
