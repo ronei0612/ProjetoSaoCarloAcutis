@@ -9,6 +9,9 @@ const complementoInput = document.getElementById('complemento');
 const salvarConfiguracoesButton = document.getElementById('salvarConfiguracoes');
 const imagemPreviewContainer = document.getElementById('imagemPreviewContainer');
 const modelSelect = document.getElementById('modeloAIStudio');
+const fileInfo = document.getElementById('fileInfo');
+const removeFile = document.getElementById('removeFile');
+const fileSelector = document.getElementById('fileSelector');
 const baseUrl = 'https://generativelanguage.googleapis.com';
 const version = 'v1beta';
 //const model = "models/gemini-1.5-pro-gf-fc";
@@ -361,5 +364,17 @@ modelSelect.addEventListener('change', async function() {
 enviarButton.addEventListener('click', function() {
   enviarPergunta(perguntaInput);
 });
+
+fileSelector.addEventListener('change', function() {
+  fileInfo.innerText = this.files[0].name;
+  removeFile.style.display = '';
+});
+
+removeFile.addEventListener('click', function() {
+  this.style.display = 'none';
+  fileInfo.innerText = '';
+  fileSelector.value = '';
+})
+//fileInfo.innerText = this.files[0].name;removeFile.style.display = ''
 
 salvarConfiguracoesButton.addEventListener('click', salvarConfiguracoes);
