@@ -73,7 +73,7 @@ complementoSelect.addEventListener('input', () => {
 function adicionarOpcaoAoSelect(complemento) {
   const option = document.createElement('option');
   option.value = complemento;
-  option.text = complemento || '';
+  option.text = complemento;
   complementoSelect.add(option);
 }
 
