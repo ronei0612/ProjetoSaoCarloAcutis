@@ -33,13 +33,24 @@ adicionarComplementoButton.addEventListener('click', () => {
   }
 });
 
+complementoSelect.addEventListener('change', () => {
+  const complementoSelecionado = complementoSelect.value;
+  localStorage.setItem('ultimoComplemento', complementoSelecionado);
+});
+
 function carregarComplementos() {
+  adicionarOpcaoAoSelect(''); 
   let complementos = localStorage.getItem('complementos');
   if (complementos) {
     complementos = JSON.parse(complementos);
     complementos.forEach(complemento => {
       adicionarOpcaoAoSelect(complemento);
     });
+  }
+
+  const ultimoComplemento = localStorage.getItem('ultimoComplemento');
+  if (ultimoComplemento) {
+    complementoSelect.value = ultimoComplemento;
   }
 }
 
@@ -62,7 +73,7 @@ complementoSelect.addEventListener('input', () => {
 function adicionarOpcaoAoSelect(complemento) {
   const option = document.createElement('option');
   option.value = complemento;
-  option.text = complemento;
+  option.text = complemento || '';
   complementoSelect.add(option);
 }
 
