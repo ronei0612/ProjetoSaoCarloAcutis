@@ -298,7 +298,7 @@ function mostrarErro(mensagem) {
 
 function salvarConfiguracoes() {
   const apiToken = apiTokenInput.value;
-  const complemento = complementoInput.value;
+  //const complemento = complementoInput.value;
 
   localStorage.setItem('aiStudio_apiToken', apiToken);
   localStorage.setItem('aiStudio_complemento', complemento);
