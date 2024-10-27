@@ -5,7 +5,9 @@ const respostaDiv = document.getElementById('resposta');
 const microfoneButton = document.getElementById('microfone');
 const modoEscuroButtonModal = document.getElementById('modoEscuroButtonModal');
 const limparButton = document.getElementById('limpar');
-const complementoInput = document.getElementById('complemento');
+const complementoSelect = document.getElementById('complemento');
+const adicionarComplementoButton = document.getElementById('adicionarComplemento');
+const removerComplementoButton = document.getElementById('removerComplemento');
 const salvarConfiguracoesButton = document.getElementById('salvarConfiguracoes');
 const imagemPreviewContainer = document.getElementById('imagemPreviewContainer');
 const modelSelect = document.getElementById('modeloAIStudio');
@@ -14,12 +16,63 @@ const removeFile = document.getElementById('removeFile');
 const fileSelector = document.getElementById('fileSelector');
 const baseUrl = 'https://generativelanguage.googleapis.com';
 const version = 'v1beta';
-//const model = "models/gemini-1.5-pro-gf-fc";
 let model = "models/gemini-1.5-flash-latest";
 
 let recognition = null;
 let isListening = false;
 let listeningTimer = null;
+
+adicionarComplementoButton.addEventListener('click', () => {
+  let novoComplemento = prompt("Digite o novo complemento:", "");
+  if (novoComplemento !== null) {
+    novoComplemento = novoComplemento.trim();
+    if (novoComplemento && !complementoSelect.querySelector(`option[value="${novoComplemento}"]`)) {
+      adicionarOpcaoAoSelect(novoComplemento);
+      salvarComplementos();
+    }
+  }
+});
+
+function carregarComplementos() {
+  let complementos = localStorage.getItem('complementos');
+  if (complementos) {
+    complementos = JSON.parse(complementos);
+    complementos.forEach(complemento => {
+      adicionarOpcaoAoSelect(complemento);
+    });
+  }
+}
+
+removerComplementoButton.addEventListener('click', () => {
+  const index = complementoSelect.selectedIndex;
+  if (index > -1) {
+    complementoSelect.remove(index);
+    salvarComplementos();
+  }
+});
+
+complementoSelect.addEventListener('input', () => {
+  const novoComplemento = complementoSelect.value.trim();
+  if (novoComplemento && !complementoSelect.querySelector(`option[value="${novoComplemento}"]`)) {
+    adicionarOpcaoAoSelect(novoComplemento);
+    salvarComplementos();
+  }
+});
+
+function adicionarOpcaoAoSelect(complemento) {
+  const option = document.createElement('option');
+  option.value = complemento;
+  option.text = complemento;
+  complementoSelect.add(option);
+}
+
+function salvarComplementos() {
+  const complementos = [];
+  for (let i = 0; i < complementoSelect.options.length; i++) {
+    complementos.push(complementoSelect.options[i].value);
+  }
+  localStorage.setItem('complementos', JSON.stringify(complementos));
+}
 
 function setupSpeechRecognition() {
   if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
@@ -70,13 +123,21 @@ function toggleSpeechRecognition() {
 
 window.addEventListener('load', () => {
   let savedToken = localStorage.getItem('aiStudio_apiToken');
-  if (savedToken) {
-    apiTokenInput.value = savedToken;
+  const urlParams = new URLSearchParams(window.location.search);
+  const aistudioToken = urlParams.get('aistudiotoken');
+
+  // Verifica se o token existe no localStorage ou na URL
+  if (!savedToken && !aistudioToken) {
+    savedToken = prompt("Por favor, insira seu token da API:", "");
+    if (savedToken) {
+      localStorage.setItem('aiStudio_apiToken', savedToken);
+    } else {
+      alert("Token da API não fornecido. O aplicativo pode não funcionar corretamente.");
+    }
   }
 
-  let complemento = localStorage.getItem('aiStudio_complemento');
-  if (complemento) {
-    complementoInput.value = complemento;
+  if (savedToken) {
+    apiTokenInput.value = savedToken;
   }
 
   const modoEscuroLocalStorage = localStorage.getItem('modoEscuro');
@@ -103,6 +164,7 @@ window.addEventListener('load', () => {
     localStorage.setItem('modoEscuro', modoEscuroAtivo);
   });
 
+  carregarComplementos();
   modelList();
 });
 
@@ -129,7 +191,7 @@ async function enviarPergunta(perguntaElem) {
     return;
   }
 
-  pergunta = complementoInput.value + ' ' + pergunta;
+  pergunta = complementoSelect.value + ' ' + pergunta;
   respostaDiv.innerHTML = '';
   enviarButton.disabled = true;
   enviarButton.textContent = "Carregando...";
@@ -301,7 +363,6 @@ function salvarConfiguracoes() {
   //const complemento = complementoInput.value;
 
   localStorage.setItem('aiStudio_apiToken', apiToken);
-  localStorage.setItem('aiStudio_complemento', complemento);
   localStorage.setItem('aiStudio_model', model);
 
   $('#modalConfiguracoes').modal('hide');
