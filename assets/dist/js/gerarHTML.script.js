@@ -13,6 +13,7 @@ const colarButton = document.getElementById('colar');
 const githubTokenInput = document.getElementById('githubToken');
 const githubFileInput = document.getElementById('githubFileUrl');
 const githubBranchInput = document.getElementById('githubBranch');
+const iframe = document.getElementById('respostaHtml');
 
 let recognition = null;
 let isListening = false;
@@ -152,6 +153,7 @@ function loadSavedData() {
 }
 
 async function enviarPergunta() {
+  const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
   const styleElement = iframeDocument.getElementById('editModeStyles');
   if (styleElement) {
     styleElement.remove();
@@ -493,7 +495,6 @@ async function monitorWorkflow(githubToken, owner, repo, branch) {
 }
 
 document.getElementById('toggleEditMode').addEventListener('click', () => {
-  const iframe = document.getElementById('respostaHtml');
   const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
 
   const isEditMode = iframeDocument.querySelector('.edit-mode');
