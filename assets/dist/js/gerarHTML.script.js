@@ -227,7 +227,7 @@ async function enviarPergunta() {
     enviarButton.disabled = false;
     enviarButton.textContent = "Enviar";
     perguntaInput.focus();
-    hideSpinner(enviarButton, 'Gerar');
+    hideSpinner(enviarButton, 'Gerar Página');
   }
 }
 
