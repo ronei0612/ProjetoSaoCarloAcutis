@@ -8,6 +8,7 @@ const limparButton = document.getElementById('limpar');
 const complementoSelect = document.getElementById('complemento');
 const adicionarComplementoButton = document.getElementById('adicionarComplemento');
 const removerComplementoButton = document.getElementById('removerComplemento');
+const editarComplementoButton = document.getElementById('editarComplemento');
 const salvarConfiguracoesButton = document.getElementById('salvarConfiguracoes');
 const imagemPreviewContainer = document.getElementById('imagemPreviewContainer');
 const modelSelect = document.getElementById('modeloAIStudio');
@@ -29,6 +30,7 @@ adicionarComplementoButton.addEventListener('click', () => {
     if (novoComplemento && !complementoSelect.querySelector(`option[value="${novoComplemento}"]`)) {
       adicionarOpcaoAoSelect(novoComplemento);
       salvarComplementos();
+      complementoSelect.value = novoComplemento; 
     }
   }
 });
@@ -39,7 +41,7 @@ complementoSelect.addEventListener('change', () => {
 });
 
 function carregarComplementos() {
-  adicionarOpcaoAoSelect(''); 
+  adicionarOpcaoAoSelect('');
   let complementos = localStorage.getItem('complementos');
   if (complementos) {
     complementos = JSON.parse(complementos);
@@ -56,9 +58,11 @@ function carregarComplementos() {
 
 removerComplementoButton.addEventListener('click', () => {
   const index = complementoSelect.selectedIndex;
-  if (index > -1) {
-    complementoSelect.remove(index);
-    salvarComplementos();
+  if (index > -1 && complementoSelect.options[index].value) {
+    if (confirm("Tem certeza de que deseja remover este complemento?")) { 
+      complementoSelect.remove(index);
+      salvarComplementos();
+    }
   }
 });
 
@@ -80,7 +84,8 @@ function adicionarOpcaoAoSelect(complemento) {
 function salvarComplementos() {
   const complementos = [];
   for (let i = 0; i < complementoSelect.options.length; i++) {
-    complementos.push(complementoSelect.options[i].value);
+    if (complementoSelect.options[i].value)
+      complementos.push(complementoSelect.options[i].value);
   }
   localStorage.setItem('complementos', JSON.stringify(complementos));
 }
@@ -177,6 +182,24 @@ window.addEventListener('load', () => {
 
   carregarComplementos();
   modelList();
+});
+
+editarComplementoButton.addEventListener('click', () => {
+  const index = complementoSelect.selectedIndex;
+  if (index > -1 && complementoSelect.options[index].value) {
+    const complementoAntigo = complementoSelect.value;
+    let novoComplemento = prompt("Edite o complemento:", complementoAntigo);
+    if (novoComplemento !== null) {
+      novoComplemento = novoComplemento.trim();
+      if (novoComplemento && !complementoSelect.querySelector(`option[value="${novoComplemento}"]`)) {
+        complementoSelect.options[index].value = novoComplemento;
+        complementoSelect.options[index].text = novoComplemento;
+        salvarComplementos();
+      } else {
+        alert("Complemento inválido ou já existente.");
+      }
+    }
+  }
 });
 
 function ativarModoEscuro() {
