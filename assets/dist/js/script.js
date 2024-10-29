@@ -15,6 +15,10 @@ const modelSelect = document.getElementById('modeloAIStudio');
 const fileInfo = document.getElementById('fileInfo');
 const removeFile = document.getElementById('removeFile');
 const fileSelector = document.getElementById('fileSelector');
+const complementoSelect2 = document.getElementById('complemento2');
+const adicionarComplementoButton2 = document.getElementById('adicionarComplemento2');
+const removerComplementoButton2 = document.getElementById('removerComplemento2');
+const editarComplementoButton2 = document.getElementById('editarComplemento2');
 const baseUrl = 'https://generativelanguage.googleapis.com';
 const version = 'v1beta';
 let model = "models/gemini-1.5-flash-latest";
@@ -22,6 +26,94 @@ let model = "models/gemini-1.5-flash-latest";
 let recognition = null;
 let isListening = false;
 let listeningTimer = null;
+
+function carregarComplementos2() {
+  adicionarOpcaoAoSelect2(''); 
+
+  let complementos2 = localStorage.getItem('complementos2');
+  if (complementos2) {
+    complementos2 = JSON.parse(complementos2);
+    complementos2.forEach(complemento => {
+      adicionarOpcaoAoSelect2(complemento);
+    });
+  }
+
+  const ultimoComplemento2 = localStorage.getItem('ultimoComplemento2');
+  if (ultimoComplemento2) {
+    complementoSelect2.value = ultimoComplemento2;
+  }
+}
+
+function adicionarOpcaoAoSelect2(complemento) {
+  const option = document.createElement('option');
+  option.value = complemento;
+  option.text = complemento;
+  complementoSelect2.add(option);
+}
+
+function salvarComplementos2() {
+  const complementos2 = [];
+  for (let i = 0; i < complementoSelect2.options.length; i++) {
+    if (complementoSelect2.options[i].value)
+      complementos2.push(complementoSelect2.options[i].value);
+  }
+  localStorage.setItem('complementos2', JSON.stringify(complementos2));
+}
+
+// Event Listeners para o novo complemento
+adicionarComplementoButton2.addEventListener('click', () => {
+  let novoComplemento = prompt("Digite o novo complemento:", "");
+  if (novoComplemento !== null) {
+    novoComplemento = novoComplemento.trim();
+    if (novoComplemento && !complementoSelect2.querySelector(`option[value="${novoComplemento}"]`)) {
+      adicionarOpcaoAoSelect2(novoComplemento);
+      salvarComplementos2();
+      complementoSelect2.value = novoComplemento; // Seleciona o novo complemento
+    }
+  }
+});
+
+removerComplementoButton2.addEventListener('click', () => {
+  const index = complementoSelect2.selectedIndex;
+  if (index > -1) {
+    if (confirm("Tem certeza de que deseja remover este complemento?")) { 
+      complementoSelect2.remove(index);
+      salvarComplementos2();
+    }
+  }
+});
+
+editarComplementoButton2.addEventListener('click', () => {
+  const index = complementoSelect2.selectedIndex;
+  if (index > -1) {
+    const complementoAntigo = complementoSelect2.value;
+    let novoComplemento = prompt("Edite o complemento:", complementoAntigo);
+    if (novoComplemento !== null) {
+      novoComplemento = novoComplemento.trim();
+      if (novoComplemento && !complementoSelect2.querySelector(`option[value="${novoComplemento}"]`)) {
+        complementoSelect2.options[index].value = novoComplemento;
+        complementoSelect2.options[index].text = novoComplemento;
+        salvarComplementos2();
+      } else {
+        alert("Complemento inválido ou já existente.");
+      }
+    }
+  }
+});
+
+complementoSelect2.addEventListener('change', () => {
+  const complementoSelecionado = complementoSelect2.value;
+  localStorage.setItem('ultimoComplemento2', complementoSelecionado);
+});
+
+complementoSelect2.addEventListener('input', () => {
+  const novoComplemento = complementoSelect2.value.trim();
+  if (novoComplemento && !complementoSelect2.querySelector(`option[value="${novoComplemento}"]`)) {
+    adicionarOpcaoAoSelect2(novoComplemento);
+    salvarComplementos2();
+    complementoSelect2.value = novoComplemento; 
+  }
+});
 
 adicionarComplementoButton.addEventListener('click', () => {
   let novoComplemento = prompt("Digite o novo complemento:", "");
@@ -181,6 +273,7 @@ window.addEventListener('load', () => {
   });
 
   carregarComplementos();
+  carregarComplementos2();
   modelList();
 });
 
@@ -225,7 +318,7 @@ async function enviarPergunta(perguntaElem) {
     return;
   }
 
-  pergunta = complementoSelect.value + ' ' + pergunta;
+  pergunta = complementoSelect.value + ' ' + complementoSelect2.value + ' ' + pergunta;
   respostaDiv.innerHTML = '';
   enviarButton.disabled = true;
   enviarButton.textContent = "Carregando...";
