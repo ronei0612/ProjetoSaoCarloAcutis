@@ -59,7 +59,8 @@ function salvarComplementos2() {
     if (complementoSelect2.options[i].value)
       complementos2.push(complementoSelect2.options[i].value);
   }
-  localStorage.setItem('complementos2', JSON.stringify(complementos2));
+
+  localStorage.setItem('complementos2', JSON.stringify(complementos2.sort()));
 }
 
 adicionarComplementoButton2.addEventListener('click', () => {
@@ -216,7 +217,8 @@ function salvarComplementos() {
     if (complementoSelect.options[i].value)
       complementos.push(complementoSelect.options[i].value);
   }
-  localStorage.setItem('complementos', JSON.stringify(complementos));
+
+  localStorage.setItem('complementos', JSON.stringify(complementos.sort()));
 }
 
 function setupSpeechRecognition() {
