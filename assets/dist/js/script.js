@@ -355,7 +355,7 @@ async function enviarPergunta(perguntaElem) {
 
   if (pergunta.trim() === '' && 
       imagemPreviewContainer.querySelectorAll('img').length === 0 && 
-      fileSelector.files.length === 0) {
+      fileSelector.files.length === 0 && complementoSelect2.value === '') {
     perguntaElem.focus();
     return;
   }
