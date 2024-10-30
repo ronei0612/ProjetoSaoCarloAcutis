@@ -6,6 +6,8 @@ const microfoneButton = document.getElementById('microfone');
 const modoEscuroButtonModal = document.getElementById('modoEscuroButtonModal');
 const limparButton = document.getElementById('limpar');
 const complementoSelect = document.getElementById('complemento');
+const botoesComplemento = document.getElementById('botoesComplemento');
+const botoesComplemento2 = document.getElementById('botoesComplemento2');
 const adicionarComplementoButton = document.getElementById('adicionarComplemento');
 const removerComplementoButton = document.getElementById('removerComplemento');
 const editarComplementoButton = document.getElementById('editarComplemento');
@@ -60,32 +62,39 @@ function salvarComplementos2() {
   localStorage.setItem('complementos2', JSON.stringify(complementos2));
 }
 
-// Event Listeners para o novo complemento
 adicionarComplementoButton2.addEventListener('click', () => {
-  let novoComplemento = prompt("Digite o novo complemento:", "");
-  if (novoComplemento !== null) {
-    novoComplemento = novoComplemento.trim();
-    if (novoComplemento && !complementoSelect2.querySelector(`option[value="${novoComplemento}"]`)) {
-      adicionarOpcaoAoSelect2(novoComplemento);
-      salvarComplementos2();
-      complementoSelect2.value = novoComplemento; // Seleciona o novo complemento
+  if (botoesComplemento2.style.display === 'inline-block') {
+    let novoComplemento = prompt("Digite o novo complemento:", "");
+    if (novoComplemento !== null) {
+      novoComplemento = novoComplemento.trim();
+      if (novoComplemento && !complementoSelect2.querySelector(`option[value="${novoComplemento}"]`)) {
+        adicionarOpcaoAoSelect2(novoComplemento);
+        salvarComplementos2();
+        complementoSelect2.value = novoComplemento;
+      }
     }
+    botoesComplemento2.style.display = 'none';
+    perguntaInput.focus();
   }
+  else
+    botoesComplemento2.style.display = 'inline-block';
 });
 
 removerComplementoButton2.addEventListener('click', () => {
   const index = complementoSelect2.selectedIndex;
-  if (index > -1) {
+  if (index > -1 && complementoSelect2.options[index].value) {
     if (confirm("Tem certeza de que deseja remover este complemento?")) { 
       complementoSelect2.remove(index);
       salvarComplementos2();
     }
+    botoesComplemento2.style.display = 'none';
+    perguntaInput.focus();
   }
 });
 
 editarComplementoButton2.addEventListener('click', () => {
   const index = complementoSelect2.selectedIndex;
-  if (index > -1) {
+  if (index > -1 && complementoSelect2.options[index].value) {
     const complementoAntigo = complementoSelect2.value;
     let novoComplemento = prompt("Edite o complemento:", complementoAntigo);
     if (novoComplemento !== null) {
@@ -98,6 +107,8 @@ editarComplementoButton2.addEventListener('click', () => {
         alert("Complemento inválido ou já existente.");
       }
     }
+    botoesComplemento2.style.display = 'none';
+    perguntaInput.focus();
   }
 });
 
@@ -116,14 +127,38 @@ complementoSelect2.addEventListener('input', () => {
 });
 
 adicionarComplementoButton.addEventListener('click', () => {
-  let novoComplemento = prompt("Digite o novo complemento:", "");
-  if (novoComplemento !== null) {
-    novoComplemento = novoComplemento.trim();
-    if (novoComplemento && !complementoSelect.querySelector(`option[value="${novoComplemento}"]`)) {
-      adicionarOpcaoAoSelect(novoComplemento);
-      salvarComplementos();
-      complementoSelect.value = novoComplemento; 
+  if (botoesComplemento.style.display === 'inline-block') {    
+    let novoComplemento = prompt("Digite o novo complemento:", "");
+    if (novoComplemento !== null) {
+      novoComplemento = novoComplemento.trim();
+      if (novoComplemento && !complementoSelect.querySelector(`option[value="${novoComplemento}"]`)) {
+        adicionarOpcaoAoSelect(novoComplemento);
+        salvarComplementos();
+        complementoSelect.value = novoComplemento; 
+      }
     }
+    botoesComplemento.style.display = 'none';
+    perguntaInput.focus();
+  }
+  else
+    botoesComplemento.style.display = 'inline-block';
+});
+
+document.addEventListener('click', (event) => {
+  if (
+    !botoesComplemento.contains(event.target) && 
+    event.target !== adicionarComplementoButton &&
+    !adicionarComplementoButton.contains(event.target)
+  ) {
+    botoesComplemento.style.display = 'none';
+  }
+
+  if (
+    !botoesComplemento2.contains(event.target) && 
+    event.target !== adicionarComplementoButton2 &&
+    !adicionarComplementoButton2.contains(event.target)
+  ) {
+    botoesComplemento2.style.display = 'none';
   }
 });
 
@@ -155,6 +190,8 @@ removerComplementoButton.addEventListener('click', () => {
       complementoSelect.remove(index);
       salvarComplementos();
     }
+    botoesComplemento.style.display = 'none';
+    perguntaInput.focus();
   }
 });
 
@@ -292,6 +329,8 @@ editarComplementoButton.addEventListener('click', () => {
         alert("Complemento inválido ou já existente.");
       }
     }
+    botoesComplemento.style.display = 'none';
+    perguntaInput.focus();
   }
 });
 
