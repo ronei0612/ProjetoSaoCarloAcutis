@@ -271,7 +271,6 @@ window.addEventListener('load', () => {
   const urlParams = new URLSearchParams(window.location.search);
   const aistudioToken = urlParams.get('aistudiotoken');
 
-  // Verifica se o token existe no localStorage ou na URL
   if (!savedToken && !aistudioToken) {
     savedToken = prompt("Por favor, insira seu token da API:", "");
     if (savedToken) {
@@ -312,6 +311,8 @@ window.addEventListener('load', () => {
   carregarComplementos();
   carregarComplementos2();
   modelList();
+
+  console.log('"c:\\Program Files\\Google\\Chrome\\Application\\chrome.exe" --app="https://roneicostasoares.com.br/ProjetoSaoCarloAcutis/ai-studio"');
 });
 
 editarComplementoButton.addEventListener('click', () => {
