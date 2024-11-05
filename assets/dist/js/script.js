@@ -25,6 +25,7 @@ const baseUrl = 'https://generativelanguage.googleapis.com';
 const version = 'v1beta';
 let model = "models/gemini-1.5-flash-latest";
 
+let fileUriToDelete = null;
 let recognition = null;
 let isListening = false;
 let listeningTimer = null;
@@ -372,10 +373,32 @@ async function enviarPergunta(perguntaElem) {
     console.error('Erro ao processar a requisição:', error);
     alert('Erro ao processar a requisição: ' + error);
   } finally {
+    if (fileUriToDelete) {
+      try {
+        await deleteFile(fileUriToDelete, apiToken);
+      } catch (deleteError) {
+        alert("Erro ao deletar arquivo: " + deleteError);
+      }
+    }
+
     enviarButton.disabled = false;
     enviarButton.textContent = "Enviar";
     perguntaElem.focus();
   }
+}
+
+async function deleteFile(fileUri, apiToken) {
+  const urlDelete = `${fileUri}?key=${apiToken}`;
+  const response = await fetch(urlDelete, {
+    method: 'DELETE'
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(`Erro ao deletar arquivo: ${response.status} - ${errorData.error?.message || "Erro desconhecido"}`);
+  }
+
+  return response;
 }
 
 async function enviarArquivo(apiToken, file) {
@@ -463,11 +486,15 @@ async function processarPergunta(pergunta, apiToken) {
   };
 
   if (file) {
-    payload.contents[0].parts.push(await enviarArquivo(apiToken, file));
+    const fileUploadResult = await enviarArquivo(apiToken, file);
+    payload.contents[0].parts.push(fileUploadResult.fileData);
+    fileUriToDelete = fileUploadResult.fileData.fileUri;
   }
 
   if (img) {
-    payload.contents[0].parts.push(await enviarImagem(apiToken, img));
+    const imageUploadResult = await enviarImagem(apiToken, img);
+    payload.contents[0].parts.push(imageUploadResult.fileData);
+    fileUriToDelete = imageUploadResult.fileData.fileUri;
   }
 
   return await enviarPayload(payload, apiToken);
