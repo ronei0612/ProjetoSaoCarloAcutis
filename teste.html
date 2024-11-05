@@ -1,44 +1,65 @@
-
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página Bonita com Bootstrap</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-</head>
+    <title>Editor TinyMCE com Autocomplete LocalStorage</title>
+    <script src="./assets/dist/js/tinymce/tinymce.min.js"></script> </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light" id="nav-principal">
-        <a class="navbar-brand" href="#" id="navbar-brand">Navbar</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation" id="navbar-toggler">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="mainNav">
-            <ul class="navbar-nav ml-auto" id="menu-principal">
-                <li class="nav-item active" id="nav-item-home">
-                    <a class="nav-link" href="#" id="link-home">Home <span class="sr-only">(current)</span></a>
-                </li>
-                <li class="nav-item" id="nav-item-sobre">
-                    <a class="nav-link" href="#" id="link-sobre">Sobre</a>
-                </li>
-                <li class="nav-item" id="nav-item-contato">
-                    <a class="nav-link" href="#" id="link-contato">Contato</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
 
-    <div class="container mt-5" id="conteudo-principal">
-        <div class="row" id="linha-principal">
-            <div class="col-md-12 text-center" id="coluna-principal">
-                <h1 class="display-4" id="titulo-principal">Oi, Joelma!</h1>
-                <p class="lead" id="texto-principal">Este é o conteúdo da página.</p>
-                <img src="https://lh3.googleusercontent.com/pw/AP1GczNY2BRskeZOXXqaA_n4lRkEVzfB9D7w3pAx7UDUrsy_TR6nwGraQW_Ca70PEWF6smEer2ZbSDmvx2jaOQVit7hscTGsEd5S4cJ2NcOR5VPR63Zdiy4" alt="Imagem inserida" class="img-fluid" id="imagem-principal">
-            </div>
-        </div>
-    </div>
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<h1>Editor TinyMCE</h1>
+
+<textarea id="editor"></textarea>
+<button id="salvar">Salvar Palavras</button>
+
+<script>
+    tinymce.init({
+        selector: 'textarea#editor',
+        menubar: false,
+        statusbar: false,
+        toolbar: false,
+        plugins: [],
+        setup: (editor) => {
+            editor.ui.registry.addAutocompleter('localstorage', {
+                trigger: ' ', // Correção: usa 'trigger' em vez de 'ch'
+                minChars: 2,
+                fetch: (pattern) => {
+                    return new Promise((resolve) => {
+                        const palavrasSalvas = JSON.parse(localStorage.getItem('palavras')) || [];
+                        const sugestoes = palavrasSalvas.filter(palavra => palavra.toLowerCase().startsWith(pattern.toLowerCase()));
+                        resolve(sugestoes.map(palavra => ({ value: palavra })));
+                    });
+                },
+                onAction: (autocompleteApi, rng, value) => {
+                    editor.selection.setRng(rng);
+                    editor.insertContent(value + ' ');
+                    autocompleteApi.hide();
+                }
+            });
+        }
+    });
+
+    const botaoSalvar = document.getElementById('salvar');
+    botaoSalvar.addEventListener('click', () => {
+        const conteudoEditor = tinymce.get('editor').getContent();
+        const palavras = conteudoEditor.split(/\s+/).filter(palavra => palavra.length > 0); // Divide o texto em palavras
+        localStorage.setItem('palavras', JSON.stringify(palavras));
+        console.log("Palavras salvas:", palavras)
+    });
+
+       // Carregar palavras do localStorage ao iniciar a página
+    window.addEventListener('DOMContentLoaded', () => {
+        if (localStorage.getItem('palavras')) {
+            const palavras = JSON.parse(localStorage.getItem('palavras'));
+           // console.log('Palavras carregadas:', palavras);
+        }
+        //Se não existir palavras ele ira criar um array vazio no localStorage
+        else {
+            const palavras = [];
+            localStorage.setItem('palavras', JSON.stringify(palavras));
+        }
+    })
+    
+</script>
+
 </body>
 </html>
