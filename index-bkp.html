@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador de Cifras</title>
+    <style>
+        /* Estilos básicos para uma aparência melhor */
+        body { font-family: sans-serif; max-width: 800px; margin: 40px auto; }
+        #barra-pesquisa { width: 70%; padding: 10px; font-size: 16px; }
+        #botao-buscar { padding: 10px; font-size: 16px; }
+        #resultados { list-style-type: none; padding: 0; }
+        #resultados li { border: 1px solid #ccc; padding: 15px; margin-top: 10px; cursor: pointer; }
+        #resultados li:hover { background-color: #f0f0f0; }
+        pre { white-space: pre-wrap; font-family: monospace; background-color: #eee; padding: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>Meu Buscador de Cifras</h1>
+    <input type="text" id="barra-pesquisa" placeholder="Carregando cifras..." disabled>
+    <button id="botao-buscar" disabled>Buscar</button>
+
+    <ul id="resultados"></ul>
+
+    <!-- O 'defer' faz o script rodar só depois do HTML ser carregado -->
+    <script src="app.js" defer></script>
+
+</body>
+</html>
